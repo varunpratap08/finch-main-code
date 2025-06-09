@@ -1,6 +1,36 @@
 <?php
 session_start();
 
+// Function to find existing image file
+function findImageFile($image_path) {
+    if (empty($image_path)) return '';
+    
+    // If it's already a full URL, return as is
+    if (strpos($image_path, 'http') === 0) {
+        return $image_path;
+    }
+    
+    // Clean the path
+    $clean_path = ltrim($image_path, '/.');
+    
+    // Possible locations to check
+    $possible_paths = [
+        '../' . $clean_path,
+        '../assets/img/products/' . basename($clean_path),
+        '../assets/img/' . basename($clean_path)
+    ];
+    
+    // Check each possible location
+    foreach ($possible_paths as $path) {
+        if (file_exists($path)) {
+            return $path;
+        }
+    }
+    
+    // If not found, try the original path as fallback
+    return '../' . ltrim($image_path, '/');
+}
+
 // Check if admin is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: login.php'); // Redirect to login if not logged in
@@ -134,13 +164,64 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 require_once '../inc/db.php'; // Ensure this file contains the PDO connection
 
 try {
-    // Fetch orders with product details
-    $stmt = $pdo->query("SELECT o.id, o.customer_name, o.customer_email, o.customer_phone, o.customer_address, o.order_details, o.total_price, o.created_at, 
-                                 p.product_name, p.product_image 
-                          FROM orders o 
-                          JOIN products p ON o.product_id = p.id 
-                          ORDER BY o.created_at DESC");
+    // First, get all orders
+    $stmt = $pdo->query("SELECT * FROM orders ORDER BY created_at DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get all product IDs from orders
+    $productIds = [];
+    $orderProductMap = [];
+    
+    foreach ($orders as $order) {
+        $orderDetails = json_decode($order['order_details'], true);
+        if (is_array($orderDetails)) {
+            foreach ($orderDetails as $item) {
+                if (isset($item['product_id']) && is_numeric($item['product_id'])) {
+                    $productIds[] = (int)$item['product_id'];
+                    $orderProductMap[$order['id']][] = (int)$item['product_id'];
+                }
+            }
+        }
+    }
+    
+    // Get product details in one query
+    $products = [];
+    if (!empty($productIds)) {
+        $placeholders = rtrim(str_repeat('?,', count(array_unique($productIds))), ',');
+        $stmt = $pdo->prepare("SELECT id, product_name, product_image FROM products WHERE id IN ($placeholders)");
+        $stmt->execute(array_unique($productIds));
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Create a product ID to details map
+    $productMap = [];
+    foreach ($products as $product) {
+        $productMap[$product['id']] = $product;
+    }
+    
+    // Enrich orders with product details
+    foreach ($orders as &$order) {
+        $order['items'] = [];
+        $orderDetails = json_decode($order['order_details'], true);
+        
+        if (is_array($orderDetails)) {
+            if (isset($orderDetails['product_id'])) { // Single item
+                $orderDetails = [$orderDetails];
+            }
+            
+            foreach ($orderDetails as $item) {
+                if (is_array($item)) {
+                    $productId = $item['product_id'] ?? null;
+                    if ($productId && isset($productMap[$productId])) {
+                        $item = array_merge($item, $productMap[$productId]);
+                    }
+                    $order['items'][] = $item;
+                }
+            }
+        }
+    }
+    unset($order); // Break the reference
+    
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());
 }
@@ -155,15 +236,107 @@ try {
                     <p class="text-muted mb-0">View and manage customer orders</p>
                 </div>
                 <div class="card-body">
-                    <?php if ($orders): ?>
-                        <?php foreach ($orders as $order): 
-                            $order_details = json_decode($order['order_details'], true);
-                            $first_item = $order_details[0] ?? [];
-                            $image_path = !empty($order['product_image']) ? 
-                                (strpos($order['product_image'], 'http') === 0 ? 
-                                    $order['product_image'] : 
-                                    '../' . ltrim($order['product_image'], '/')) : 
-                                '../assets/img/no-image.png';
+                    <?php 
+                    // Group orders by customer and timestamp
+                    $grouped_orders = [];
+                    foreach ($orders as $order) {
+                        // Decode the order details
+                        $order_details = json_decode($order['order_details'], true);
+                        
+                        // Handle case where order_details is a JSON string of an array
+                        if (is_string($order_details)) {
+                            $order_details = json_decode($order_details, true);
+                        }
+                        
+                        // If order_details is still not an array, initialize it as an empty array
+                        if (!is_array($order_details)) {
+                            $order_details = [];
+                        }
+                        
+                        // If order_details is not already a list of items, wrap it in an array
+                        if (isset($order_details['product_id'])) {
+                            $order_details = [$order_details];
+                        }
+                        
+                        $order_key = $order['customer_email'] . '_' . strtotime($order['created_at']);
+                        
+                        if (!isset($grouped_orders[$order_key])) {
+                            $grouped_orders[$order_key] = [
+                                'id' => $order['id'],
+                                'customer_name' => $order['customer_name'],
+                                'customer_email' => $order['customer_email'],
+                                'customer_phone' => $order['customer_phone'],
+                                'customer_address' => $order['customer_address'],
+                                'created_at' => $order['created_at'],
+                                'total_price' => 0,
+                                'items' => []
+                            ];
+                        }
+                        
+                        // Process each item in the order details
+                        foreach ($order_details as $item) {
+                            if (!is_array($item)) {
+                                continue; // Skip invalid items
+                            }
+                            
+                            // Generate a unique ID for the item if not present
+                            $product_id = $item['id'] ?? $item['product_id'] ?? 'unknown_' . uniqid();
+                            $product_name = $item['name'] ?? 'Product ' . $product_id;
+                            
+                            $grouped_orders[$order_key]['items'][] = [
+                                'product_id' => $product_id,
+                                'name' => $product_name,
+                                'image' => $item['image'] ?? '',
+                                'size' => $item['size'] ?? '',
+                                'finish' => $item['finish'] ?? '',
+                                'quantity' => isset($item['quantity']) ? (int)$item['quantity'] : (isset($item['qty']) ? (int)$item['qty'] : 1),
+                                'price' => isset($item['price']) ? (float)$item['price'] : 0,
+                                'subtotal' => isset($item['subtotal']) ? (float)$item['subtotal'] : 0
+                            ];
+                            
+                            $grouped_orders[$order_key]['total_price'] += $item['subtotal'] ?? $order['total_price'] ?? 0;
+                        }
+                    }
+                    ?>
+                    
+                    <?php if (!empty($grouped_orders)): ?>
+                        <?php foreach ($grouped_orders as $order_key => $order): 
+                            $first_item = $order['items'][0] ?? [];
+                            $image_path = '';
+                            
+                            // Initialize image path
+                            $image_path = '';
+                            
+                            // Try to find an image in this order:
+                            // 1. Check if item has a direct image path
+                            if (empty($image_path) && !empty($first_item['image'])) {
+                                $image_path = $first_item['image'];
+                            }
+                            // 2. Check if item has a product_image from the database
+                            if (empty($image_path) && !empty($first_item['product_image'])) {
+                                $image_path = $first_item['product_image'];
+                            }
+                            
+                            // Process the found image path
+                            if (!empty($image_path)) {
+                                // Handle full URLs
+                                if (strpos($image_path, 'http') !== 0) {
+                                    // For relative paths, try to find the file
+                                    $image_path = findImageFile($image_path);
+                                    
+                                    // If file doesn't exist locally, try to make it a full URL
+                                    if (!file_exists($image_path)) {
+                                        $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+                                        $image_path = $base_url . '/' . ltrim($image_path, '/');
+                                    }
+                                }
+                            }
+                            
+                            // Fallback to no-image placeholder
+                            if (empty($image_path)) {
+                                $no_image_path = '../assets/img/no-image.png';
+                                $image_path = file_exists($no_image_path) ? $no_image_path : '';
+                            }
                         ?>
                         <div class="card order-card mb-4">
                             <div class="order-header d-flex justify-content-between align-items-center">
@@ -179,13 +352,25 @@ try {
                                 <div class="row">
                                     <div class="col-md-8">
                                         <div class="d-flex align-items-start mb-3">
-                                            <img src="<?php echo htmlspecialchars($image_path); ?>" 
-                                                 alt="<?php echo htmlspecialchars($order['product_name']); ?>" 
-                                                 class="product-img me-3">
+                                            <div class="product-image-container me-3" style="width: 120px; height: 120px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
+                                                <?php if (!empty($image_path)): ?>
+                                                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                                         alt="<?php echo htmlspecialchars($first_item['name'] ?? 'Product Image'); ?>" 
+                                                         class="img-fluid" 
+                                                         style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                         onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23e9ecef%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%236c757d%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
+                                                <?php else: ?>
+                                                    <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="width: 100%; height: 100%;">
+                                                        <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                                        <small>No Image</small>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
                                             <div>
-                                                <h6 class="mb-1"><?php echo htmlspecialchars($order['product_name']); ?></h6>
+                                                <h6 class="mb-1">Order #<?php echo $order['id']; ?></h6>
                                                 <p class="text-muted small mb-0">
                                                     Order Total: <strong>₹<?php echo number_format($order['total_price'], 2); ?></strong>
+                                                    (<?php echo count($order['items']); ?> item<?php echo count($order['items']) !== 1 ? 's' : ''; ?>)
                                                 </p>
                                             </div>
                                         </div>
@@ -204,12 +389,12 @@ try {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <?php foreach ($order_details as $item): ?>
+                                                        <?php foreach ($order['items'] as $item): ?>
                                                         <tr>
                                                             <td><?php echo htmlspecialchars($item['size']); ?></td>
                                                             <td><?php echo htmlspecialchars($item['finish']); ?></td>
                                                             <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                                            <td>₹<?php echo number_format($item['price_per_unit'], 2); ?></td>
+                                                            <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                                             <td>₹<?php echo number_format($item['subtotal'], 2); ?></td>
                                                         </tr>
                                                         <?php endforeach; ?>
@@ -222,31 +407,27 @@ try {
                                         <div class="card bg-light">
                                             <div class="card-body">
                                                 <h6 class="card-title">Customer Details</h6>
+                                                <h6 class="card-title">Customer Details</h6>
                                                 <p class="mb-1">
-                                                    <i class="bi bi-person me-2"></i>
-                                                    <?php echo htmlspecialchars($order['customer_name']); ?>
+                                                    <strong>Name:</strong> <?php echo htmlspecialchars($order['customer_name']); ?>
                                                 </p>
                                                 <p class="mb-1">
-                                                    <i class="bi bi-envelope me-2"></i>
-                                                    <a href="mailto:<?php echo htmlspecialchars($order['customer_email']); ?>">
-                                                        <?php echo htmlspecialchars($order['customer_email']); ?>
-                                                    </a>
+                                                    <strong>Email:</strong> <?php echo htmlspecialchars($order['customer_email']); ?>
                                                 </p>
                                                 <p class="mb-1">
-                                                    <i class="bi bi-telephone me-2"></i>
-                                                    <a href="tel:<?php echo htmlspecialchars($order['customer_phone']); ?>">
-                                                        <?php echo htmlspecialchars($order['customer_phone']); ?>
-                                                    </a>
+                                                    <strong>Phone:</strong> <?php echo htmlspecialchars($order['customer_phone']); ?>
                                                 </p>
                                                 <p class="mb-0">
-                                                    <i class="bi bi-geo-alt me-2"></i>
-                                                    <?php echo nl2br(htmlspecialchars($order['customer_address'])); ?>
+                                                    <strong>Address:</strong> <?php echo nl2br(htmlspecialchars($order['customer_address'])); ?>
                                                 </p>
                                             </div>
                                         </div>
-                                        <div class="d-flex justify-content-end mt-3">
+                                        <div class="d-flex justify-content-end gap-2 mt-3">
                                             <button type="button" class="btn btn-info btn-sm" onclick="showOrderDetails(<?php echo htmlspecialchars(json_encode($order), ENT_QUOTES, 'UTF-8'); ?>)">
                                                 <i class="bi bi-eye me-1"></i> View Details
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="return deleteOrder(<?php echo $order['id']; ?>, this)">
+                                                <i class="bi bi-trash me-1"></i> Delete
                                             </button>
                                         </div>
                                     </div>
@@ -272,88 +453,220 @@ try {
 </section>
 
 <script>
-    function deleteOrder(orderId) {
-        if (confirm("Are you sure you want to delete this order?")) {
-            window.location.href = 'delete_order.php?id=' + orderId;
+    function deleteOrder(orderId, button) {
+        if (!confirm('Are you sure you want to delete order #' + orderId + '? This action cannot be undone.')) {
+            return false;
         }
+        
+        // Show loading state
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>';
+        
+        // Find the order card for removal later
+        const orderCard = button.closest('.order-card');
+        
+        // Send delete request
+        fetch('delete_order.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `order_id=${orderId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mb-3';
+                alert.role = 'alert';
+                alert.innerHTML = `
+                    <i class="bi bi-check-circle me-2"></i> Order #${orderId} has been deleted successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insert alert before the orders list
+                const ordersContainer = document.querySelector('.card-body');
+                if (ordersContainer) {
+                    ordersContainer.insertBefore(alert, ordersContainer.firstChild);
+                }
+                
+                // Remove the order card with animation
+                if (orderCard) {
+                    orderCard.style.transition = 'opacity 0.3s ease';
+                    orderCard.style.opacity = '0';
+                    setTimeout(() => {
+                        orderCard.remove();
+                        
+                        // Check if there are no more orders
+                        if (!document.querySelector('.order-card')) {
+                            const noOrdersDiv = document.createElement('div');
+                            noOrdersDiv.className = 'text-center py-5';
+                            noOrdersDiv.innerHTML = `
+                                <div class="mb-3">
+                                    <i class="bi bi-inbox display-4 text-muted"></i>
+                                </div>
+                                <h5>No orders found</h5>
+                                <p class="text-muted">When you receive new orders, they will appear here.</p>
+                            `;
+                            ordersContainer.appendChild(noOrdersDiv);
+                        }
+                    }, 300);
+                }
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            } else {
+                throw new Error(data.message || 'Failed to delete order');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to delete order: ' + (error.message || 'Unknown error'));
+            button.disabled = false;
+            button.innerHTML = originalText;
+        });
+        
+        return false;
     }
 
     function showOrderDetails(order) {
+        // Parse the order details if it's a string
+        if (typeof order === 'string') {
+            order = JSON.parse(order);
+        }
+
+        // Format the order date
+        const orderDate = new Date(order.created_at);
+        const formattedDate = orderDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         // Create order details HTML
         let details = `
             <div class="order-details">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6>Order #${order.id}</h6>
-                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-success">Completed</span></p>
-                        <p class="mb-1"><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
-                        <p class="mb-1"><strong>Total Amount:</strong> ₹${parseFloat(order.total_price).toFixed(2)}</p>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">Order #${order.id}</h4>
+                            <span class="badge bg-success">Completed</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Order Date:</strong> ${formattedDate}</p>
+                                <p class="mb-1"><strong>Total Amount:</strong> ₹${parseFloat(order.total_price || 0).toFixed(2)}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-3">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <div class="card h-100">
                             <div class="card-header bg-light">
                                 <h6 class="mb-0">Customer Details</h6>
                             </div>
                             <div class="card-body">
-                                <p class="mb-2"><i class="bi bi-person me-2"></i> ${order.customer_name}</p>
-                                <p class="mb-2"><i class="bi bi-envelope me-2"></i> <a href="mailto:${order.customer_email}">${order.customer_email}</a></p>
-                                <p class="mb-2"><i class="bi bi-telephone me-2"></i> <a href="tel:${order.customer_phone}">${order.customer_phone}</a></p>
-                                <p class="mb-0"><i class="bi bi-geo-alt me-2"></i> ${order.customer_address.replace(/\n/g, '<br>')}</p>
+                                <p class="mb-2"><i class="bi bi-person me-2"></i> ${order.customer_name || 'N/A'}</p>
+                                <p class="mb-2"><i class="bi bi-envelope me-2"></i> ${order.customer_email ? `<a href="mailto:${order.customer_email}">${order.customer_email}</a>` : 'N/A'}</p>
+                                <p class="mb-2"><i class="bi bi-telephone me-2"></i> ${order.customer_phone ? `<a href="tel:${order.customer_phone}">${order.customer_phone}</a>` : 'N/A'}</p>
+                                <p class="mb-0"><i class="bi bi-geo-alt me-2"></i> ${order.customer_address ? order.customer_address.replace(/\n/g, '<br>') : 'N/A'}</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">Order Items</h6>
+                        <div class="card h-100">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Order Items (${order.items ? order.items.length : 0})</h6>
+                                <span class="badge bg-primary">Total: ₹${parseFloat(order.total_price || 0).toFixed(2)}</span>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-sm mb-0">
+                                    <table class="table table-hover mb-0">
                                         <thead class="bg-light">
                                             <tr>
                                                 <th>Item</th>
                                                 <th>Size</th>
                                                 <th>Finish</th>
-                                                <th>Qty</th>
-                                                <th>Price</th>
+                                                <th class="text-end">Qty</th>
+                                                <th class="text-end">Price</th>
+                                                <th class="text-end">Subtotal</th>
                                             </tr>
                                         </thead>
                                         <tbody>`;
         
         // Add order items
-        const orderDetails = JSON.parse(order.order_details);
-        orderDetails.forEach(item => {
+        const items = order.items || [];
+        let totalItems = 0;
+        
+        items.forEach(item => {
+            const quantity = parseInt(item.quantity || 1);
+            const price = parseFloat(item.price || 0);
+            const subtotal = quantity * price;
+            totalItems += quantity;
+            
             details += `
                 <tr>
-                    <td>${order.product_name}</td>
+                    <td>${item.name || 'Product'}</td>
                     <td>${item.size || 'N/A'}</td>
                     <td>${item.finish || 'N/A'}</td>
-                    <td>${item.quantity}</td>
-                    <td>₹${parseFloat(item.price_per_unit).toFixed(2)}</td>
+                    <td class="text-end">${quantity}</td>
+                    <td class="text-end">₹${price.toFixed(2)}</td>
+                    <td class="text-end fw-bold">₹${subtotal.toFixed(2)}</td>
                 </tr>`;
         });
         
+        // Add order summary
+        const subtotal = parseFloat(order.total_price || 0);
+        const shipping = 0; // Add shipping calculation if needed
+        const total = subtotal + shipping;
+        
         details += `
                                         </tbody>
+                                        <tfoot class="bg-light">
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-bold">Subtotal:</td>
+                                                <td class="text-end">₹${subtotal.toFixed(2)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-bold">Shipping:</td>
+                                                <td class="text-end">₹${shipping.toFixed(2)}</td>
+                                            </tr>
+                                            <tr class="table-active">
+                                                <td colspan="5" class="text-end fw-bold">Total:</td>
+                                                <td class="text-end fw-bold">₹${total.toFixed(2)}</td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
         
         // Show in modal
-        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-        const modalTitle = document.querySelector('#orderDetailsModal .modal-title');
-        const modalBody = document.querySelector('#orderDetailsModal .modal-body');
+        const modalElement = document.getElementById('orderDetailsModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        const modalTitle = modalElement.querySelector('.modal-title');
+        const modalBody = modalElement.querySelector('.modal-body');
         
         modalTitle.textContent = `Order #${order.id} Details`;
         modalBody.innerHTML = details;
+        
+        // Initialize any tooltips in the modal
+        const tooltipTriggerList = [].slice.call(modalElement.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
         modal.show();
     }
     
@@ -378,7 +691,9 @@ try {
                 <!-- Content will be dynamically inserted here -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i> Close
+                </button>
                 <button type="button" class="btn btn-primary" onclick="window.print()">
                     <i class="bi bi-printer me-1"></i> Print
                 </button>

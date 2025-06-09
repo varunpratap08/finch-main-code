@@ -411,6 +411,136 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCartUI();
 });
 
+// Function to update checkout modal with cart items
+function updateCheckoutModal() {
+    const cart = getCart();
+    const cartItemsList = document.getElementById('checkoutItemsList');
+    const totalPriceElement = document.getElementById('totalPrice');
+    const totalPriceInput = document.getElementById('totalPriceInput');
+    
+    if (!cartItemsList || !totalPriceElement || !totalPriceInput) return;
+    
+    // Clear the cart items list
+    cartItemsList.innerHTML = '';
+    
+    if (cart.length === 0) {
+        cartItemsList.innerHTML = '<div class="alert alert-info">Your cart is empty</div>';
+        totalPriceElement.textContent = '0.00';
+        totalPriceInput.value = '0.00';
+        return;
+    }
+    
+    let total = 0;
+    
+    // Get the cart item template
+    const template = document.getElementById('cartItemTemplate');
+    
+    cart.forEach((item, index) => {
+        const clone = template.content.cloneNode(true);
+        
+        // Set product details
+        clone.querySelector('.product-name').textContent = item.name;
+        clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
+        clone.querySelector('.product-quantity').textContent = item.qty;
+        clone.querySelector('.product-id').value = item.id;
+        clone.querySelector('.product-quantity-input').value = item.qty;
+        clone.querySelector('.product-price-input').value = item.price;
+        
+        // Set product image if available
+        if (item.image) {
+            clone.querySelector('img').src = item.image;
+            clone.querySelector('img').alt = item.name;
+        }
+        
+        // Set selected size and finish if available
+        if (item.size) {
+            const sizeSelect = clone.querySelector('.item-size');
+            if (sizeSelect) {
+                for (let i = 0; i < sizeSelect.options.length; i++) {
+                    if (sizeSelect.options[i].value === item.size) {
+                        sizeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (item.finish) {
+            const finishSelect = clone.querySelector('.item-finish');
+            if (finishSelect) {
+                for (let i = 0; i < finishSelect.options.length; i++) {
+                    if (finishSelect.options[i].value === item.finish) {
+                        finishSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Add event listeners for size and finish changes
+        const sizeSelect = clone.querySelector('.item-size');
+        const finishSelect = clone.querySelector('.item-finish');
+        
+        if (sizeSelect) {
+            sizeSelect.addEventListener('change', function() {
+                updateFinishOptions(this);
+            });
+        }
+        
+        if (finishSelect) {
+            finishSelect.addEventListener('change', function() {
+                updateTotalPrice();
+            });
+        }
+        
+        cartItemsList.appendChild(clone);
+        total += item.price * item.qty;
+    });
+    
+    // Update total price
+    totalPriceElement.textContent = total.toFixed(2);
+    totalPriceInput.value = total.toFixed(2);
+    
+    // Initialize size options with pricing data if available
+    initializeSizeOptions();
+}
+
+// Function to initialize size options with pricing data
+function initializeSizeOptions() {
+    // This function would typically fetch size and pricing data from your server
+    // For now, we'll use a simplified example
+    const sizeOptions = {
+        'Standard': { sn: 100, bk: 110, an: 120, gd: 130, rg: 140, ch: 150, gl: 160 },
+        'Small': { sn: 80, bk: 90, an: 100, gd: 110, rg: 120, ch: 130, gl: 140 },
+        'Medium': { sn: 100, bk: 110, an: 120, gd: 130, rg: 140, ch: 150, gl: 160 },
+        'Large': { sn: 150, bk: 160, an: 170, gd: 180, rg: 190, ch: 200, gl: 210 },
+        'XL': { sn: 200, bk: 210, an: 220, gd: 230, rg: 240, ch: 250, gl: 260 },
+        'Custom': { sn: 250, bk: 260, an: 270, gd: 280, rg: 290, ch: 300, gl: 310 }
+    };
+    
+    // Populate size options with data attributes for pricing
+    document.querySelectorAll('.item-size').forEach(select => {
+        // Clear existing options except the first one
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        
+        // Add size options with pricing data
+        Object.entries(sizeOptions).forEach(([size, prices]) => {
+            const option = document.createElement('option');
+            option.value = size;
+            option.textContent = size;
+            
+            // Add data attributes for each finish price
+            Object.entries(prices).forEach(([finish, price]) => {
+                option.dataset[finish] = price;
+            });
+            
+            select.appendChild(option);
+        });
+    });
+}
+
 // Initialize checkout modal when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Wait for Bootstrap to be fully loaded
@@ -424,6 +554,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 initializeModal();
             }
         }, 100);
+    }
+    
+    // Update checkout modal when it's shown
+    const checkoutModal = document.getElementById('checkoutModal');
+    if (checkoutModal) {
+        checkoutModal.addEventListener('show.bs.modal', updateCheckoutModal);
     }
 });
 
@@ -489,37 +625,45 @@ function initializeModal() {
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             
-            // Get form data
+            // Get all the form data
             const formData = new FormData(this);
             const cart = getCart();
             
-            // Prepare cart items in the correct format
-            const cartItems = cart.map(item => ({
-                id: item.id,
-                name: item.name,
-                image: item.image || '',
-                price: parseFloat(item.price),
-                qty: parseInt(item.qty) || 1
-            }));
+            // Update cart items with size and finish from the form
+            const sizes = formData.getAll('item_size[]');
+            const finishes = formData.getAll('item_finish[]');
             
-            // Add cart items to form data
-            formData.append('cart_items', JSON.stringify(cartItems));
+            cart.forEach((item, index) => {
+                if (sizes[index]) item.size = sizes[index];
+                if (finishes[index]) item.finish = finishes[index];
+            });
+            
+            // Save the updated cart
+            setCart(cart);
+            
+            // Prepare the order data
+            const orderData = {
+                customer_name: formData.get('customer_name'),
+                customer_email: formData.get('customer_email'),
+                customer_phone: formData.get('customer_phone'),
+                shipping_address: formData.get('shipping_address'),
+                total_amount: formData.get('total_amount'),
+                cart_items: JSON.stringify(cart)
+            };
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             
             // Log for debugging
-            console.log('Submitting cart items:', cartItems);
-            
-            // Log form data for debugging
-            console.log('Submitting form data:', Object.fromEntries(formData));
+            console.log('Submitting order data:', orderData);
             
             // Send data to server
             fetch('inc/process_checkout.php', {
                 method: 'POST',
-                body: formData,
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: new URLSearchParams(orderData)
             })
             .then(response => {
                 // First, get the response as text
@@ -635,6 +779,59 @@ function showToast(message) {
     return toast;
 }
 
+// Function to update finish options based on selected size
+function updateFinishOptions(selectElement) {
+    const finishSelect = selectElement.parentElement.parentElement.nextElementSibling.querySelector('.item-finish');
+    const selectedSize = selectElement.selectedOptions[0];
+    
+    if (!selectedSize || selectedSize.value === '') {
+        finishSelect.querySelectorAll('option').forEach((option, index) => {
+            option.disabled = index > 0;
+        });
+        finishSelect.value = '';
+        return;
+    }
+    
+    // Enable all finish options
+    finishSelect.querySelectorAll('option').forEach((option, index) => {
+        if (index > 0) {
+            option.disabled = false;
+        }
+    });
+    
+    // Update price if available
+    updateTotalPrice();
+}
+
+// Function to update total price based on selected options
+function updateTotalPrice() {
+    let total = 0;
+    document.querySelectorAll('.cart-item-details').forEach((item, index) => {
+        const sizeSelect = item.querySelector('.item-size');
+        const finishSelect = item.querySelector('.item-finish');
+        const quantityInput = document.querySelectorAll('.product-quantity-input')[index];
+        const priceElement = item.querySelector('.product-price');
+        
+        if (sizeSelect && finishSelect && quantityInput && priceElement) {
+            const sizeOption = sizeSelect.selectedOptions[0];
+            const finishValue = finishSelect.value;
+            const quantity = parseInt(quantityInput.value) || 0;
+            
+            if (sizeOption && finishValue && quantity > 0) {
+                const price = parseFloat(sizeOption.dataset[finishValue]) || 0;
+                total += price * quantity;
+                priceElement.textContent = '₹' + (price * quantity).toFixed(2);
+            }
+        }
+    });
+    
+    const totalElement = document.getElementById('totalPrice');
+    const totalInput = document.getElementById('totalPriceInput');
+    
+    if (totalElement) totalElement.textContent = total.toFixed(2);
+    if (totalInput) totalInput.value = total.toFixed(2);
+}
+
 // Handle checkout form submission
 if (checkoutForm) {
     checkoutForm.addEventListener('submit', function(e) {
@@ -648,11 +845,17 @@ if (checkoutForm) {
         const formData = new FormData(this);
         const cart = getCart();
         
-        // Add cart items to form data
-        cart.forEach((item) => {
-            formData.append('product_ids[]', item.id);
-            formData.append('quantities[]', item.qty || 1);
-            formData.append('prices[]', item.price);
+        // Add cart items to form data with size and finish
+        document.querySelectorAll('.cart-item-details').forEach((item, index) => {
+            const productId = document.querySelectorAll('.product-id')[index].value;
+            const quantity = document.querySelectorAll('.product-quantity-input')[index].value;
+            const size = document.querySelectorAll('.item-size')[index].value;
+            const finish = document.querySelectorAll('.item-finish')[index].value;
+            
+            formData.append(`items[${index}][product_id]`, productId);
+            formData.append(`items[${index}][quantity]`, quantity);
+            formData.append(`items[${index}][size]`, size);
+            formData.append(`items[${index}][finish]`, finish);
         });
         
         // Submit the form data
@@ -701,86 +904,101 @@ if (checkoutForm) {
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-7">
-                        <form id="checkoutForm">
-                            <h6 class="mb-3">Contact Information</h6>
-                            <div class="mb-3">
-                                <label for="customer_name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
-                            </div>
+                    <div class="col-md-12">
+                        <form id="checkoutForm" action="inc/process_checkout.php" method="POST">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="customer_email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="customer_email" name="customer_email" required>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" name="customer_name" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="customer_phone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
-                                </div>
-                            </div>
-                            
-                            <h6 class="mt-4 mb-3">Shipping Address</h6>
-                            <div class="mb-3">
-                                <label for="shipping_address" class="form-label">Address</label>
-                                <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required></textarea>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="city" class="form-label">City</label>
-                                    <input type="text" class="form-control" id="city" name="city" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="state" class="form-label">State</label>
-                                    <input type="text" class="form-control" id="state" name="state" required>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" name="customer_email" required>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="pincode" class="form-label">Pincode</label>
-                                    <input type="text" class="form-control" id="pincode" name="pincode" required>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" name="customer_phone" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="country" class="form-label">Country</label>
-                                    <input type="text" class="form-control" id="country" name="country" value="India" required>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Shipping Address</label>
+                                        <textarea class="form-control" name="shipping_address" rows="3" required></textarea>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <h6 class="mt-4 mb-3">Order Notes (Optional)</h6>
                             <div class="mb-3">
-                                <label for="order_notes" class="form-label">Order Notes (Optional)</label>
-                                <textarea class="form-control" id="order_notes" name="order_notes" rows="2" placeholder="Notes about your order, e.g. special delivery instructions"></textarea>
+                                <h5 class="mb-3">Order Summary</h5>
+                                <div id="checkoutItemsList" class="mb-3">
+                                    <!-- Cart items will be dynamically inserted here -->
+                                </div>
+                                
+                                <!-- Hidden template for cart item with size and finish options -->
+                                <template id="cartItemTemplate">
+                                    <div class="card mb-3 cart-item-details">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <img src="" class="img-fluid rounded" alt="Product Image" style="max-height: 80px;">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6 class="mb-1 product-name"></h6>
+                                                    <p class="mb-1">Price: <span class="product-price"></span></p>
+                                                    <p class="mb-1">Qty: <span class="product-quantity"></span></p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-2">
+                                                        <label class="form-label small mb-1">Size</label>
+                                                        <select class="form-select form-select-sm item-size" name="item_size[]" required onchange="updateFinishOptions(this)">
+                                                            <option value="">Choose Size</option>
+                                                            <!-- Sizes will be populated by JavaScript -->
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-2">
+                                                        <label class="form-label small mb-1">Finish</label>
+                                                        <select class="form-select form-select-sm item-finish" name="item_finish[]" required>
+                                                            <option value="">Choose Finish</option>
+                                                            <option value="sn">Satin Nickel</option>
+                                                            <option value="bk">Black</option>
+                                                            <option value="an">Antique Nickel</option>
+                                                            <option value="gd">Gold</option>
+                                                            <option value="rg">Rose Gold</option>
+                                                            <option value="ch">Chrome</option>
+                                                            <option value="gl">Glossy</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="product_id[]" class="product-id">
+                                    <input type="hidden" name="quantity[]" class="product-quantity-input">
+                                    <input type="hidden" name="price[]" class="product-price-input">
+                                </template>
                             </div>
-                            
-                            <input type="hidden" name="total_amount" id="checkoutTotalInput">
-                            <button type="submit" class="btn btn-primary w-100 py-2">Place Order</button>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="mb-0">Total:</h5>
+                                <h4 class="mb-0">₹<span id="totalPrice">0</span></h4>
+                                <input type="hidden" name="total_amount" id="totalPriceInput">
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success btn-lg px-4">
+                                    <i class="bi bi-credit-card me-2"></i>Place Order
+                                </button>
+                            </div>
                         </form>
                     </div>
-                    <div class="col-md-5">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Order Summary</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <ul class="list-group list-group-flush" id="checkoutItems">
-                                    <!-- Cart items will be added here -->
-                                </ul>
-                                <div class="p-3 border-top">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>Subtotal</span>
-                                        <span id="checkoutSubtotal">₹0.00</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>Shipping</span>
-                                        <span>Free</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center fw-bold fs-5 mt-3">
-                                        <span>Total</span>
-                                        <span id="checkoutTotal">₹0.00</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

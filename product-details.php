@@ -466,9 +466,27 @@ try {
             </div>
 
             <!-- Dimension Chart Image -->
-            <div class="dimension-chart-container mt-3 mb-3 text-center">
-                <img src="assets/img/Finch_Dimension-Chart_1.jpg" alt="Finch Dimension Chart" class="img-fluid rounded shadow-sm">
+            <?php if (!empty($product['dimension_image'])): ?>
+            <div class="dimension-image-container mt-4 mb-4 text-center">
+                <h5 class="mb-3">Product Dimensions</h5>
+                <img src="../<?php echo htmlspecialchars($product['dimension_image']); ?>" 
+                     alt="<?php echo htmlspecialchars($product['product_name']); ?> Dimensions" 
+                     class="img-fluid rounded shadow-sm"
+                     style="max-height: 300px; width: auto;">
             </div>
+            <style>
+                .dimension-image-container {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border: 1px solid #e9ecef;
+                }
+                .dimension-image-container h5 {
+                    color: #333;
+                    font-weight: 600;
+                }
+            </style>
+            <?php endif; ?>
 
             <!-- Buttons -->
             <div class="action-buttons d-flex gap-3 mt-3">

@@ -36,6 +36,12 @@ try {
     if (!isset($pdo) || !($pdo instanceof PDO)) {
         throw new Exception('Database connection failed');
     }
+    
+    // Set PDO to throw exceptions on error
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // Start transaction
+    $pdo->beginTransaction();
 } catch (Exception $e) {
     sendJsonResponse('error', 'Database connection error: ' . $e->getMessage());
 }
@@ -58,20 +64,26 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         $customer_email = trim($_POST['customer_email'] ?? '');
         $customer_phone = trim($_POST['customer_phone'] ?? '');
         $shipping_address = trim($_POST['shipping_address'] ?? '');
-        $city = trim($_POST['city'] ?? '');
-        $state = trim($_POST['state'] ?? '');
-        $pincode = trim($_POST['pincode'] ?? '');
-        $country = trim($_POST['country'] ?? 'India');
-        $order_notes = trim($_POST['order_notes'] ?? '');
         $total_amount = floatval($_POST['total_amount'] ?? 0);
         
-        // Get cart items from JSON
-        $cart_items = [];
-        if (!empty($_POST['cart_items'])) {
-            $cart_items = json_decode($_POST['cart_items'], true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid cart data');
-            }
+        // For backward compatibility
+        $city = '';
+        $state = '';
+        $pincode = '';
+        $country = 'India';
+        $order_notes = '';
+        
+        // Get cart items from form data
+        if (empty($_POST['cart_items'])) {
+            cleanOutputBuffer();
+            sendJsonResponse('error', 'No cart items received');
+        }
+        
+        $cart_items = json_decode($_POST['cart_items'], true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            cleanOutputBuffer();
+            sendJsonResponse('error', 'Invalid cart data: ' . json_last_error_msg());
         }
         
         if (empty($cart_items)) {
@@ -84,15 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             'customer_name' => 'Full Name',
             'customer_email' => 'Email Address',
             'customer_phone' => 'Phone Number',
-            'shipping_address' => 'Shipping Address',
-            'city' => 'City',
-            'state' => 'State',
-            'pincode' => 'Pincode'
+            'shipping_address' => 'Shipping Address'
         ];
         
         $errors = [];
         foreach ($required as $field => $label) {
-            if (empty($$field)) {
+            if (empty($$field) && !empty($label)) {
                 $errors[] = "$label is required";
             }
         }
@@ -111,6 +120,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         $calculated_total = 0;
         $order_items = [];
         
+        // First, verify all product IDs exist in the database
+        $product_ids = array_column($cart_items, 'id');
+        $placeholders = rtrim(str_repeat('?,', count($product_ids)), ',');
+        
+        $stmt = $pdo->prepare("SELECT id FROM products WHERE id IN ($placeholders)");
+        $stmt->execute($product_ids);
+        $valid_product_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Log for debugging
+        error_log('Cart product IDs: ' . print_r($product_ids, true));
+        error_log('Valid product IDs: ' . print_r($valid_product_ids, true));
+        
+        // Check if all products in cart exist in database
+        $invalid_products = array_diff($product_ids, $valid_product_ids);
+        if (!empty($invalid_products)) {
+            throw new Exception('One or more products in your cart are no longer available');
+        }
+        
         foreach ($cart_items as $item) {
             if (!isset($item['id'], $item['qty'], $item['price'])) {
                 throw new Exception('Invalid item in cart');
@@ -120,12 +147,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $calculated_total += $item_total;
             
             $order_items[] = [
-                'product_id' => $item['id'],
+                'product_id' => (int)$item['id'],  // Ensure it's an integer
                 'name' => $item['name'] ?? 'Product ' . $item['id'],
                 'image' => $item['image'] ?? '',
-                'quantity' => $item['qty'],
-                'price' => $item['price'],
-                'subtotal' => $item_total
+                'quantity' => (int)$item['qty'],
+                'price' => (float)$item['price'],
+                'subtotal' => $item_total,
+                'size' => $item['size'] ?? '',
+                'finish' => $item['finish'] ?? ''
             ];
         }
         
@@ -148,53 +177,57 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         $order_details = json_encode($order_items);
         
         try {
+            // First, verify the product IDs exist
+            $product_ids = array_unique(array_column($order_items, 'product_id'));
+            $placeholders = rtrim(str_repeat('?,', count($product_ids)), ',');
+            
+            $stmt = $pdo->prepare("SELECT id FROM products WHERE id IN ($placeholders)");
+            $stmt->execute($product_ids);
+            $existing_products = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Check for missing products
+            $missing_products = array_diff($product_ids, $existing_products);
+            if (!empty($missing_products)) {
+                throw new Exception('The following product IDs are not valid: ' . implode(', ', $missing_products));
+            }
+            
             // Insert order with order_details as JSON
             $stmt = $pdo->prepare("
                 INSERT INTO orders (
                     customer_name, 
                     customer_email, 
                     customer_phone, 
-                    shipping_address, 
-                    city, 
-                    state, 
-                    pincode, 
-                    country, 
-                    order_notes, 
-                    total_amount,
+                    customer_address,
+                    total_price,
                     order_details,
-                    status,
+                    product_id,  
                     created_at
                 ) VALUES (
                     :customer_name,
                     :customer_email,
                     :customer_phone,
-                    :shipping_address,
-                    :city,
-                    :state,
-                    :pincode,
-                    :country,
-                    :order_notes,
-                    :total_amount,
+                    :customer_address,
+                    :total_price,
                     :order_details,
-                    'pending',
+                    :product_id,
                     NOW()
                 )
             ");
             
-            // Use the calculated total instead of the potentially undefined $order_total
-            $stmt->execute([
-                ':customer_name' => $customer_name,
-                ':customer_email' => $customer_email,
-                ':customer_phone' => $customer_phone,
-                ':shipping_address' => $shipping_address,
-                ':city' => $city,
-                ':state' => $state,
-                ':pincode' => $pincode,
-                ':country' => $country,
-                ':order_notes' => $order_notes,
-                ':total_amount' => $calculated_total,
-                ':order_details' => $order_details
-            ]);
+            // For each product, insert a separate order record
+            foreach ($order_items as $item) {
+                $order_data = [
+                    ':customer_name' => $customer_name,
+                    ':customer_email' => $customer_email,
+                    ':customer_phone' => $customer_phone,
+                    ':customer_address' => $shipping_address,
+                    ':total_price' => $item['subtotal'],
+                    ':order_details' => json_encode($item),
+                    ':product_id' => $item['product_id']
+                ];
+                
+                $stmt->execute($order_data);
+            }
             
             $order_id = $pdo->lastInsertId();
             
@@ -215,6 +248,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             sendJsonResponse('error', 'Error processing your order: ' . $e->getMessage());
         }
     } catch (Exception $e) {
-        error_log('Unexpected Error: ' . $e->getMessage());
-        sendJsonResponse('error', 'An unexpected error occurred. Please try again.');
+        error_log('Checkout Process Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        error_log('POST data: ' . print_r($_POST, true));
+        error_log('Backtrace: ' . print_r(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), true));
+        
+        // For development - show detailed error
+        $errorMessage = 'An error occurred: ' . $e->getMessage();
+        if (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false || ($_SERVER['REMOTE_ADDR'] ?? '') === '127.0.0.1') {
+            $errorMessage .= ' in ' . basename($e->getFile()) . ' on line ' . $e->getLine();
+        }
+        
+        sendJsonResponse('error', $errorMessage);
     }

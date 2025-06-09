@@ -344,14 +344,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $image3 = !empty($_FILES["product_image3"]['name']) ? 
               uploadImage($_FILES["product_image3"], $target_dir, 'img3_') : '';
     
+    // Upload dimension image (optional)
+    $dimension_image = !empty($_FILES["dimension_image"]['name']) ? 
+                     uploadImage($_FILES["dimension_image"], $target_dir, 'dim_') : '';
+    
     // Handle selected finishes
     $finish_ids = isset($_POST['finishes']) && is_array($_POST['finishes']) ? 
                  implode(',', array_map('intval', $_POST['finishes'])) : '';
     
     try {
+        // First, check if the dimension_image column exists, if not, add it
+        try {
+            $pdo->query("ALTER TABLE products ADD COLUMN IF NOT EXISTS dimension_image VARCHAR(255) DEFAULT NULL AFTER image3");
+        } catch (PDOException $e) {
+            // Column might already exist, ignore the error
+        }
+
         $stmt = $pdo->prepare("INSERT INTO products 
-            (product_name, category, sub_category, description, pricing, product_image, image2, image3, finish_ids) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (product_name, category, sub_category, description, pricing, product_image, image2, image3, dimension_image, finish_ids) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $product_name, 
             $category_id, 
@@ -361,6 +372,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $main_image,
             $image2,
             $image3,
+            $dimension_image,
             $finish_ids
         ]);
         if ($stmt->rowCount() > 0) {
@@ -489,6 +501,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="product_image3" class="form-label">Additional Image 2</label>
             <input type="file" class="form-control" name="product_image3" id="product_image3" accept="image/*">
             <small class="text-muted">Optional third image</small>
+          </div>
+          
+          <!-- Dimension Image (Optional) -->
+          <div class="mb-3">
+            <label for="dimension_image" class="form-label">Dimension Image</label>
+            <input type="file" class="form-control" name="dimension_image" id="dimension_image" accept="image/*">
+            <small class="text-muted">Image showing product dimensions (optional)</small>
           </div>
         </div>
 
