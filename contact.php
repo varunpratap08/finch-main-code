@@ -50,6 +50,47 @@
 }
 
   </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+  $(document).ready(function() {
+      $('#contactForm').on('submit', function(e) {
+          e.preventDefault();
+          
+          const submitBtn = $('#submitBtn');
+          const formResponse = $('#formResponse');
+          
+          // Disable submit button and show loading state
+          submitBtn.prop('disabled', true).html('Sending...');
+          formResponse.html('').removeClass('alert alert-success alert-danger');
+          
+          // Get form data
+          const formData = $(this).serialize();
+          
+          // Submit form via AJAX
+          $.ajax({
+              type: 'POST',
+              url: '',
+              data: formData,
+              dataType: 'json',
+              success: function(response) {
+                  if (response.status === 'success') {
+                      formResponse.html('<div class="alert alert-success">' + response.message + '</div>');
+                      $('#contactForm')[0].reset();
+                  } else {
+                      formResponse.html('<div class="alert alert-danger">' + response.message + '</div>');
+                  }
+              },
+              error: function(xhr, status, error) {
+                  formResponse.html('<div class="alert alert-danger">An error occurred. Please try again later.</div>');
+                  console.error('AJAX Error:', status, error);
+              },
+              complete: function() {
+                  submitBtn.prop('disabled', false).html('Submit');
+              }
+          });
+      });
+  });
+  </script>
 </head>
 
 <body class="index-page">
@@ -67,14 +108,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate input fields
     if (empty($name) || empty($email) || empty($subject) || empty($message)) {
-        $response = '<div class="alert alert-danger">All fields are required!</div>';
-        echo $response;
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'All fields are required!'
+        ]);
         exit;
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $response = '<div class="alert alert-danger">Invalid email format!</div>';
-        echo $response;
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Invalid email format!'
+        ]);
         exit;
     }
 
@@ -82,24 +129,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO contact_messages (name, email, subject, message) 
-            VALUES (:name, :email, :subject, :message)
+            INSERT INTO contact_messages (name, email, subject, message, created_at) 
+            VALUES (:name, :email, :subject, :message, NOW())
         ");
-        $stmt->execute([
+        $result = $stmt->execute([
             ':name' => htmlspecialchars($name),
             ':email' => htmlspecialchars($email),
             ':subject' => htmlspecialchars($subject),
             ':message' => htmlspecialchars($message)
         ]);
 
-        // Success message
-        $response = '<div class="alert alert-success">Your message has been sent. Thank you!</div>';
-        echo $response;
+        if ($result) {
+            $response = [
+                'status' => 'success',
+                'message' => 'Your message has been sent. Thank you!'
+            ];
+        } else {
+            $response = [
+                'status' => 'error',
+                'message' => 'Failed to save your message. Please try again.'
+            ];
+        }
     } catch (PDOException $e) {
-        // Error message
-        $response = '<div class="alert alert-danger">Database error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-        echo $response;
+        $response = [
+            'status' => 'error',
+            'message' => 'Database error: ' . $e->getMessage()
+        ];
     }
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
 }
 ?>
 
@@ -113,14 +172,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <h2>Get In Touch With Us</h2>
       <p>We’re here to assist with your needs. Contact us for inquiries, support, or product-related questions, and we’ll respond promptly.</p>
       
-      <form>
-        <input type="text" placeholder="Name" required>
-        <input type="email" placeholder="Email" required>
-        <input type="tel" placeholder="Phone Number">
-        <input type="text" placeholder="Company Name">
-        <textarea placeholder="Message" rows="4"></textarea>
-        <button type="submit">Submit</button>
+      <form method="POST" action="" id="contactForm">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="subject" placeholder="Subject" required>
+        <textarea name="message" placeholder="Message" rows="4" required></textarea>
+        <button type="submit" id="submitBtn">Submit</button>
       </form>
+      <div id="formResponse"></div>
     </div>
   </div>
 </section>

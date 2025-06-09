@@ -456,13 +456,6 @@ document.addEventListener("DOMContentLoaded", function () {
   <script src="assets/js/main.js"></script>
 
   <script>
-// Cart logic for Add to Cart buttons
-function getCart() {
-    return JSON.parse(localStorage.getItem('cart') || '[]');
-}
-function setCart(cart) {
-    localStorage.setItem('cart', JSON.stringify(cart));
-}
 // Show toast notification
 function showToast(message) {
     const toastContainer = document.querySelector('.toast-container');
@@ -504,53 +497,52 @@ function showToast(message) {
 
 // Handle add to cart button click
 function handleAddToCart(button) {
-    const productId = button.getAttribute('data-id');
-    const productName = button.getAttribute('data-name');
-    const productImage = button.getAttribute('data-image');
-    
-    // Add to cart logic (you may need to adjust this based on your cart implementation)
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        existingItem.quantity = (existingItem.quantity || 1) + 1;
-    } else {
-        cart.push({
-            id: productId,
-            name: productName,
-            image: productImage,
-            quantity: 1
-        });
+    // Make sure cart functions are available
+    if (typeof window.cartFunctions === 'undefined') {
+        console.error('Cart functions not loaded!');
+        showToast('Error: Cart system not ready. Please refresh the page.');
+        return;
     }
     
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
+    const productId = button.getAttribute('data-id');
+    const productName = button.getAttribute('data-name');
+    const productImage = button.getAttribute('data-image') || 'assets/img/placeholder-product.jpg';
+    const productPrice = parseFloat(button.getAttribute('data-price') || '0');
     
-    // Update button state
-    button.disabled = true;
-    const originalHTML = button.innerHTML; // Store original HTML
-    button.innerHTML = '<i class="bi bi-check-lg me-1"></i> Added';
-    button.classList.add('added');
+    console.log('Adding to cart:', {productId, productName, productPrice});
     
-    // Show success message
-    showToast(`${productName} added to cart`);
-    
-    // Reset button after 1 minute
-    setTimeout(() => {
-        button.disabled = false;
-        button.innerHTML = originalHTML; // Restore original HTML
-        button.classList.remove('added');
-    }, 60000);
-}
-
-// Update cart count in header
-function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const count = cart.reduce((total, item) => total + (item.quantity || 1), 0);
-    const cartCount = document.querySelector('.cart-count');
-    if (cartCount) {
-        cartCount.textContent = count;
-        cartCount.style.display = count > 0 ? 'flex' : 'none';
+    try {
+        // Add to cart using global cart function
+        window.cartFunctions.addToCart({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            qty: 1
+        });
+        
+        // Verify item was added
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        console.log('Current cart after add:', cart);
+        
+        // Update button state
+        button.disabled = true;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check-lg me-1"></i> Added';
+        button.classList.add('added');
+        
+        // Show success message
+        showToast(`${productName} added to cart`);
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+            button.classList.remove('added');
+        }, 2000);
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showToast('Error adding item to cart. Please try again.');
     }
 }
 
@@ -558,48 +550,14 @@ function updateCartCount() {
 document.addEventListener('DOMContentLoaded', function() {
     // Delegate click event for add to cart buttons
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.add-to-cart')) {
+        const addToCartBtn = e.target.closest('.add-to-cart');
+        if (addToCartBtn) {
             e.preventDefault();
-            handleAddToCart(e.target.closest('.add-to-cart'));
+            handleAddToCart(addToCartBtn);
+            return false; // Prevent any other handlers
         }
     });
-    
-    // Initialize cart count on page load
-    updateCartCount();
 });
-
-function updateCartUI() {
-    const cart = getCart();
-    let count = 0, total = 0;
-    cart.forEach(item => {
-        count += item.qty;
-        total += item.price * item.qty;
-    });
-    // Update your cart icon/section here
-    document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
-    document.querySelectorAll('.cart-total').forEach(el => el.textContent = '₹' + total);
-}
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('add-to-cart')) {
-        const btn = e.target;
-        const id = btn.getAttribute('data-id');
-        const name = btn.getAttribute('data-name');
-        const price = parseFloat(btn.getAttribute('data-price')) || 0;
-        const image = btn.getAttribute('data-image');
-        let cart = getCart();
-        let found = cart.find(item => item.id == id);
-        if (found) {
-            found.qty += 1;
-        } else {
-            cart.push({id, name, price, image, qty: 1});
-        }
-        setCart(cart);
-        updateCartUI();
-        btn.textContent = "Added!";
-        setTimeout(() => btn.textContent = "Add to Cart", 1000);
-    }
-});
-document.addEventListener('DOMContentLoaded', updateCartUI);
 </script>
 
 </body>

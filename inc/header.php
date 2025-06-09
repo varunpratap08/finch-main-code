@@ -48,36 +48,116 @@
           <li><a href="index.php">Home</a></li>
           <li><a href="about.php">About Us</a></li>
           <li><a href="products.php">Products</a></li>
+          <li class="d-none d-lg-flex align-items-center">
+            <a href="cart.php" class="cart-link position-relative" style="color: #222; text-decoration: none;">
+              <i class="bi bi-cart" style="font-size: 1.5rem;"></i>
+              <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.8rem; padding: 0.3em 0.5em;">0</span>
+              <span class="cart-total ms-2" style="font-weight: 600; color: #DEB462; font-size: 1.1rem;">₹0</span>
+            </a>
+          </li>
         </ul>
         
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        <div class="d-flex align-items-center d-lg-none">
+          <a href="cart.php" class="cart-link position-relative me-4" style="color: #222; text-decoration: none;">
+            <i class="bi bi-cart" style="font-size: 1.8rem;"></i>
+            <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.8rem; padding: 0.3em 0.5em;">0</span>
+          </a>
+          <i class="mobile-nav-toggle bi bi-list"></i>
+        </div>
       </nav>
 
-      <a class="btn-getstarted" href="contact.php">Contact Us</a>
-      <div class="cart-header d-flex align-items-center" style="margin-left: 20px;">
-        <a href="cart.php" class="cart-link position-relative" style="color: #222; text-decoration: none;">
-          <i class="bi bi-cart" style="font-size: 1.7rem;"></i>
-          <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.9rem;">0</span>
-          <span class="cart-total ms-2" style="font-weight: bold; color: #DEB462;">₹0</span>
-        </a>
-      </div>
+      <a class="btn-getstarted d-none d-lg-inline-flex" href="contact.php">Contact Us</a>
 
     </div>
   </header>
   <script>
-// Ensure cart count/total is updated on every page load
-function getCart() {
-    return JSON.parse(localStorage.getItem('cart') || '[]');
+// Ensure cart is initialized in localStorage
+if (!localStorage.getItem('cart')) {
+    localStorage.setItem('cart', '[]');
 }
-function updateCartUI() {
-    const cart = getCart();
-    let count = 0, total = 0;
-    cart.forEach(item => {
-        count += item.qty;
-        total += item.price * item.qty;
-    });
-    document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
-    document.querySelectorAll('.cart-total').forEach(el => el.textContent = '₹' + total);
-}
-document.addEventListener('DOMContentLoaded', updateCartUI);
+
+// Cart functions available globally
+window.cartFunctions = {
+    getCart: function() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        console.log('Getting cart:', cart);
+        return cart;
+    },
+    updateCartUI: function() {
+        const cart = this.getCart();
+        let count = 0, total = 0;
+        
+        // Calculate total items and price
+        cart.forEach(item => {
+            count += parseInt(item.qty) || 0;
+            total += (parseFloat(item.price) || 0) * (parseInt(item.qty) || 0);
+        });
+        
+        // Update all cart count and total elements
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'inline-flex' : 'none';
+        });
+        
+        document.querySelectorAll('.cart-total').forEach(el => {
+            el.textContent = '₹' + total.toFixed(2);
+        });
+        
+        // Dispatch event for other scripts to listen to
+        document.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count, total } }));
+    },
+    addToCart: function(product) {
+        const cart = this.getCart();
+        const existingItem = cart.find(item => item.id === product.id);
+        
+        if (existingItem) {
+            existingItem.qty = (parseInt(existingItem.qty) || 0) + (parseInt(product.qty) || 1);
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: parseFloat(product.price),
+                qty: parseInt(product.qty) || 1,
+                image: product.image || ''
+            });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        this.updateCartUI();
+        return cart;
+    },
+    removeFromCart: function(productId) {
+        let cart = this.getCart();
+        cart = cart.filter(item => item.id !== productId);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        this.updateCartUI();
+        return cart;
+    },
+    updateQuantity: function(productId, newQty) {
+        const cart = this.getCart();
+        const item = cart.find(item => item.id === productId);
+        
+        if (item) {
+            item.qty = parseInt(newQty) || 1;
+            if (item.qty <= 0) {
+                return this.removeFromCart(productId);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            this.updateCartUI();
+        }
+        return cart;
+    }
+};
+
+// Initialize cart UI when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    window.cartFunctions.updateCartUI();
+});
+
+// Also update cart when the page becomes visible again (in case of back/forward navigation)
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        window.cartFunctions.updateCartUI();
+    }
+});
 </script>
