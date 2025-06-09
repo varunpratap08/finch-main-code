@@ -1,14 +1,91 @@
+<?php
+// Start output buffering at the very beginning
+ob_start();
+
+// Set default response
+$response = [
+    'status' => 'error',
+    'message' => 'An unknown error occurred.'
+];
+
+// Process form if it's a POST request
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        // Get and sanitize input
+        $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+        $subject = isset($_POST['subject']) ? trim($_POST['subject']) : '';
+        $message = isset($_POST['message']) ? trim($_POST['message']) : '';
+
+        // Validate input fields
+        if (empty($name) || empty($email) || empty($subject) || empty($message)) {
+            throw new Exception('All fields are required!');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('Invalid email format!');
+        }
+
+        // Include database connection
+        require_once 'inc/db.php';
+
+        // Prepare and execute the query
+        $stmt = $pdo->prepare("
+            INSERT INTO contact_messages (name, email, subject, message, created_at) 
+            VALUES (:name, :email, :subject, :message, NOW())
+        ");
+        
+        $result = $stmt->execute([
+            ':name' => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
+            ':email' => filter_var($email, FILTER_SANITIZE_EMAIL),
+            ':subject' => htmlspecialchars($subject, ENT_QUOTES, 'UTF-8'),
+            ':message' => htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+        ]);
+
+        if ($result) {
+            $response = [
+                'status' => 'success',
+                'message' => 'Your message has been sent. Thank you!'
+            ];
+        } else {
+            throw new Exception('Failed to save your message. Please try again.');
+        }
+    } catch (PDOException $e) {
+        error_log('Database Error: ' . $e->getMessage());
+        $response['message'] = 'A database error occurred. Please try again later.';
+    } catch (Exception $e) {
+        $response['message'] = $e->getMessage();
+    }
+    
+    // If it's an AJAX request, return JSON and exit
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        // Clear any previous output
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Set JSON header and output response
+        header('Content-Type: application/json');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        
+        echo json_encode($response);
+        exit;
+    }
+}
+
+// If we get here, it's a normal page load or a non-AJAX form submission
+// Clear the output buffer
+ob_end_clean();
+?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Finch Lock</title>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-
- 
+  <title>Contact Us - Finch Lock</title>
+  <meta name="description" content="Contact Finch Lock for inquiries and support">
+  <meta name="keywords" content="contact, inquiry, support, finch lock">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -29,63 +106,92 @@
 
   <style>
       .alert {
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    text-align: center;
-    max-width: 500px;
-    margin: 10px auto;
-}
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 16px;
+        text-align: center;
+        max-width: 500px;
+        margin: 10px auto;
+    }
 
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
 
-.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    #formResponse {
+        display: none;
+        margin: 15px 0;
+    }
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
   $(document).ready(function() {
-      $('#contactForm').on('submit', function(e) {
+      const $form = $('#contactForm');
+      const $submitBtn = $('#submitBtn');
+      const $formResponse = $('#formResponse');
+      
+      // Function to show message
+      function showMessage(message, type = 'error') {
+          $formResponse.html('<div class="alert alert-' + type + '">' + message + '</div>');
+          $formResponse.show().delay(5000).fadeOut();
+      }
+      
+      // Form submission handler
+      $form.on('submit', function(e) {
           e.preventDefault();
           
-          const submitBtn = $('#submitBtn');
-          const formResponse = $('#formResponse');
+          // Reset previous messages
+          $formResponse.html('').removeClass('alert-success alert-danger');
           
           // Disable submit button and show loading state
-          submitBtn.prop('disabled', true).html('Sending...');
-          formResponse.html('').removeClass('alert alert-success alert-danger');
-          
-          // Get form data
-          const formData = $(this).serialize();
+          const originalText = $submitBtn.html();
+          $submitBtn.prop('disabled', true).html(
+              '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Sending...'
+          );
           
           // Submit form via AJAX
           $.ajax({
               type: 'POST',
-              url: '',
-              data: formData,
+              url: window.location.href, // Use current URL
+              data: $form.serialize(),
               dataType: 'json',
               success: function(response) {
-                  if (response.status === 'success') {
-                      formResponse.html('<div class="alert alert-success">' + response.message + '</div>');
-                      $('#contactForm')[0].reset();
+                  if (response && response.status) {
+                      if (response.status === 'success') {
+                          showMessage(response.message, 'success');
+                          $form[0].reset();
+                      } else {
+                          showMessage(response.message || 'An error occurred. Please try again.');
+                      }
                   } else {
-                      formResponse.html('<div class="alert alert-danger">' + response.message + '</div>');
+                      showMessage('Invalid response from server. Please try again.');
                   }
               },
               error: function(xhr, status, error) {
-                  formResponse.html('<div class="alert alert-danger">An error occurred. Please try again later.</div>');
-                  console.error('AJAX Error:', status, error);
+                  let errorMsg = 'An error occurred while processing your request. ';
+                  
+                  // Try to parse the response if it's JSON
+                  try {
+                      const response = JSON.parse(xhr.responseText);
+                      if (response && response.message) {
+                          errorMsg = response.message;
+                      }
+                  } catch (e) {
+                      // If not JSON, use default error message
+                      console.error('AJAX Error:', status, error, xhr.responseText);
+                  }
+                  
+                  showMessage(errorMsg);
               },
               complete: function() {
-                  submitBtn.prop('disabled', false).html('Submit');
+                  $submitBtn.prop('disabled', false).html(originalText);
               }
           });
       });
@@ -94,73 +200,8 @@
 </head>
 
 <body class="index-page">
-
   <?php include ('inc/header.php'); ?>
-
   <main class="main">
-
-        <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $subject = trim($_POST['subject']);
-    $message = trim($_POST['message']);
-
-    // Validate input fields
-    if (empty($name) || empty($email) || empty($subject) || empty($message)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'All fields are required!'
-        ]);
-        exit;
-    }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Invalid email format!'
-        ]);
-        exit;
-    }
-
-    require 'inc/db.php'; // Database connection
-
-    try {
-        $stmt = $pdo->prepare("
-            INSERT INTO contact_messages (name, email, subject, message, created_at) 
-            VALUES (:name, :email, :subject, :message, NOW())
-        ");
-        $result = $stmt->execute([
-            ':name' => htmlspecialchars($name),
-            ':email' => htmlspecialchars($email),
-            ':subject' => htmlspecialchars($subject),
-            ':message' => htmlspecialchars($message)
-        ]);
-
-        if ($result) {
-            $response = [
-                'status' => 'success',
-                'message' => 'Your message has been sent. Thank you!'
-            ];
-        } else {
-            $response = [
-                'status' => 'error',
-                'message' => 'Failed to save your message. Please try again.'
-            ];
-        }
-    } catch (PDOException $e) {
-        $response = [
-            'status' => 'error',
-            'message' => 'Database error: ' . $e->getMessage()
-        ];
-    }
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit;
-}
-?>
 
 
 <section class="contact-section">
