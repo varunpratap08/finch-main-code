@@ -266,9 +266,6 @@
         <div class="row g-4">
             <div class="col-lg-8">
                 <div id="cartItems"></div>
-                <div class="text-end mt-4">
-                    <a href="products.php" class="btn btn-outline-secondary">Continue Shopping</a>
-                </div>
             </div>
             
             <div class="col-lg-4">
@@ -349,7 +346,7 @@ function updateCartUI() {
                     <i class="bi bi-cart-x"></i>
                 </div>
                 <h3>Your cart is empty</h3>
-                <p>Looks like you haven't added any products to your cart yet.</p>
+                <p class="mb-4">Looks like you haven't added any products to your cart yet.</p>
                 <a href="products.php" class="btn btn-primary">
                     <i class="bi bi-arrow-left"></i> Continue Shopping
                 </a>
@@ -392,6 +389,16 @@ function updateCartUI() {
     totalElement.textContent = `₹${subtotal.toFixed(2)}`; // In a real app, you'd add shipping and tax here
     checkoutBtn.disabled = false;
     
+    // Add "Continue Shopping" button when cart has items
+    const continueShoppingBtn = document.createElement('div');
+    continueShoppingBtn.className = 'text-end mt-4';
+    continueShoppingBtn.innerHTML = `
+        <a href="products.php" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Continue Shopping
+        </a>
+    `;
+    cartItemsContainer.after(continueShoppingBtn);
+    
     // Update the cart count in the header
     window.cartFunctions.updateCartUI();
 }
@@ -406,16 +413,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize checkout modal when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Wait for Bootstrap to be fully loaded
+    if (typeof bootstrap !== 'undefined') {
+        initializeModal();
+    } else {
+        // If Bootstrap is not loaded yet, wait for it
+        const checkBootstrap = setInterval(function() {
+            if (typeof bootstrap !== 'undefined') {
+                clearInterval(checkBootstrap);
+                initializeModal();
+            }
+        }, 100);
+    }
+});
+
+function initializeModal() {
     const checkoutModalElement = document.getElementById('checkoutModal');
+    if (!checkoutModalElement) return;
+    
     const checkoutModal = new bootstrap.Modal(checkoutModalElement, {
         backdrop: 'static',
         keyboard: false
     });
     
-    const checkoutForm = document.getElementById('checkoutForm');
-    const checkoutBtn = document.getElementById('checkoutBtn');
-
     // Handle checkout button click
+    const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function() {
             const cart = getCart();
@@ -445,9 +467,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Calculate and update total
                 const total = cart.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
                 const totalElement = document.getElementById('checkoutTotal');
+                const subtotalElement = document.getElementById('checkoutSubtotal');
                 const totalInput = document.getElementById('checkoutTotalInput');
                 
                 if (totalElement) totalElement.textContent = `₹${total.toFixed(2)}`;
+                if (subtotalElement) subtotalElement.textContent = `₹${total.toFixed(2)}`;
                 if (totalInput) totalInput.value = total.toFixed(2);
                 
                 // Show the modal
@@ -455,25 +479,145 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+    
+    // Handle form submission
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            
+            // Get form data
+            const formData = new FormData(this);
+            const cart = getCart();
+            
+            // Prepare cart items in the correct format
+            const cartItems = cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                image: item.image || '',
+                price: parseFloat(item.price),
+                qty: parseInt(item.qty) || 1
+            }));
+            
+            // Add cart items to form data
+            formData.append('cart_items', JSON.stringify(cartItems));
+            
+            // Log for debugging
+            console.log('Submitting cart items:', cartItems);
+            
+            // Log form data for debugging
+            console.log('Submitting form data:', Object.fromEntries(formData));
+            
+            // Send data to server
+            fetch('inc/process_checkout.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                // First, get the response as text
+                return response.text().then(text => {
+                    try {
+                        // Try to parse as JSON
+                        const data = JSON.parse(text);
+                        
+                        // If the response was not OK, throw an error with the message
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Server error occurred');
+                        }
+                        
+                        return data;
+                    } catch (e) {
+                        // If not valid JSON, handle as text error
+                        console.error('Response was not JSON:', text);
+                        
+                        // If the response was OK but not JSON, something is wrong
+                        if (response.ok) {
+                            throw new Error('Invalid response from server');
+                        }
+                        
+                        // If we have a non-JSON error response, use its text
+                        throw new Error(text || 'Server error occurred');
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                if (data.status === 'success') {
+                    // Clear cart on success
+                    localStorage.setItem('cart', '[]');
+                    updateCartUI();
+                    
+                    // Show success message
+                    showToast(data.message || 'Order placed successfully!', 'success');
+                    
+                    // Close modal
+                    if (typeof bootstrap !== 'undefined') {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                        if (modal) modal.hide();
+                    }
+                    
+                    // Redirect to thank you page or home after a delay
+                    setTimeout(() => {
+                        window.location.href = 'thank-you.php';
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to place order');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                // Try to extract a more specific error message
+                if (error.message.includes('JSON')) {
+                    errorMessage = 'Invalid response from server. Please try again.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showToast(errorMessage, 'error');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+        });
+    }
+}
 
 // Handle checkout button click
 function proceedToCheckout() {
     const cart = getCart();
     if (cart.length === 0) {
-        showToast('Your cart is empty');
+        showToast('Your cart is empty. Please add some products before checkout.');
         return;
     }
     
-    // Initialize Bootstrap modal if not already done
-    if (typeof bootstrap !== 'undefined') {
-        const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
-        checkoutModal.show();
-    } else {
-        // Fallback in case Bootstrap JS is not loaded
-        document.getElementById('checkoutModal').style.display = 'block';
-        document.body.classList.add('modal-open');
-    }
+    const checkoutModalElement = document.getElementById('checkoutModal');
+    const checkoutModal = bootstrap.Modal.getOrCreateInstance(checkoutModalElement);
+    checkoutModal.show();
+    
+    // Update order summary in the modal
+    updateOrderSummary();
+    
+    // Set focus to the first input when modal is shown
+    checkoutModalElement.addEventListener('shown.bs.modal', function() {
+        const firstInput = checkoutModalElement.querySelector('input, textarea, select');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, { once: true });
 }
 
 // Show toast notification
@@ -548,7 +692,7 @@ if (checkoutForm) {
 </script>
 
 <!-- Checkout Modal -->
-<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -562,48 +706,49 @@ if (checkoutForm) {
                             <h6 class="mb-3">Contact Information</h6>
                             <div class="mb-3">
                                 <label for="customer_name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" name="customer_name" required>
+                                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="customer_email" required>
+                                    <input type="email" class="form-control" id="customer_email" name="customer_email" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_phone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" name="customer_phone" required>
+                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
                                 </div>
                             </div>
                             
                             <h6 class="mt-4 mb-3">Shipping Address</h6>
                             <div class="mb-3">
                                 <label for="shipping_address" class="form-label">Address</label>
-                                <textarea class="form-control" name="shipping_address" rows="3" required></textarea>
+                                <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required></textarea>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="city" class="form-label">City</label>
-                                    <input type="text" class="form-control" name="city" required>
+                                    <input type="text" class="form-control" id="city" name="city" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="state" class="form-label">State</label>
-                                    <input type="text" class="form-control" name="state" required>
+                                    <input type="text" class="form-control" id="state" name="state" required>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="pincode" class="form-label">Pincode</label>
-                                    <input type="text" class="form-control" name="pincode" required>
+                                    <input type="text" class="form-control" id="pincode" name="pincode" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="country" class="form-label">Country</label>
-                                    <input type="text" class="form-control" name="country" value="India" required>
+                                    <input type="text" class="form-control" id="country" name="country" value="India" required>
                                 </div>
                             </div>
                             
                             <h6 class="mt-4 mb-3">Order Notes (Optional)</h6>
                             <div class="mb-3">
-                                <textarea class="form-control" name="order_notes" rows="2" placeholder="Notes about your order, e.g. special delivery instructions"></textarea>
+                                <label for="order_notes" class="form-label">Order Notes (Optional)</label>
+                                <textarea class="form-control" id="order_notes" name="order_notes" rows="2" placeholder="Notes about your order, e.g. special delivery instructions"></textarea>
                             </div>
                             
                             <input type="hidden" name="total_amount" id="checkoutTotalInput">
@@ -643,5 +788,19 @@ if (checkoutForm) {
 </div>
 
 <?php include('inc/footer.php'); ?>
+
+<!-- Vendor JS Files -->
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/aos/aos.js"></script>
+<script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+<!-- Template Main JS File -->
+<script src="assets/js/main.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

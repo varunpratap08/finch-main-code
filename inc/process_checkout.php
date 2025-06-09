@@ -1,9 +1,57 @@
 <?php
-require_once 'db.php';
+// Ensure no output is sent before headers
+define('NO_OUTPUT', true);
 
+// Start output buffering to catch any unexpected output
+ob_start();
+
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't output errors to the response
+
+// Set content type to JSON
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Function to send JSON response and exit
+function sendJsonResponse($status, $message, $data = []) {
+    // Clear any previous output
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    
+    http_response_code($status === 'error' ? 400 : 200);
+    echo json_encode([
+        'status' => $status,
+        'message' => $message,
+        'data' => $data
+    ]);
+    exit;
+}
+
+// Handle database connection
+try {
+    require_once 'db.php';
+    
+    // Verify database connection
+    if (!isset($pdo) || !($pdo instanceof PDO)) {
+        throw new Exception('Database connection failed');
+    }
+} catch (Exception $e) {
+    sendJsonResponse('error', 'Database connection error: ' . $e->getMessage());
+}
+
+// Function to clean output buffer and return its contents
+function cleanOutputBuffer() {
+    return ob_get_clean();
+}
+
+// Verify request method
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Clean any output that might have been generated
+    cleanOutputBuffer();
+    header('HTTP/1.1 405 Method Not Allowed');
+    sendJsonResponse('error', 'Method not allowed');
+}
     try {
         // Get form data
         $customer_name = trim($_POST['customer_name'] ?? '');
@@ -17,10 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_notes = trim($_POST['order_notes'] ?? '');
         $total_amount = floatval($_POST['total_amount'] ?? 0);
         
-        // Get cart items
-        $product_ids = $_POST['product_ids'] ?? [];
-        $quantities = $_POST['quantities'] ?? [];
-        $prices = $_POST['prices'] ?? [];
+        // Get cart items from JSON
+        $cart_items = [];
+        if (!empty($_POST['cart_items'])) {
+            $cart_items = json_decode($_POST['cart_items'], true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid cart data');
+            }
+        }
+        
+        if (empty($cart_items)) {
+            cleanOutputBuffer();
+            sendJsonResponse('error', 'Your cart is empty');
+        }
         
         // Validate required fields
         $required = [
@@ -50,45 +107,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Invalid phone number";
         }
         
-        // Check if cart is not empty
-        if (empty($product_ids) || empty($quantities) || empty($prices)) {
-            $errors[] = "Your cart is empty";
+        // Calculate total from cart items
+        $calculated_total = 0;
+        $order_items = [];
+        
+        foreach ($cart_items as $item) {
+            if (!isset($item['id'], $item['qty'], $item['price'])) {
+                throw new Exception('Invalid item in cart');
+            }
+            
+            $item_total = $item['price'] * $item['qty'];
+            $calculated_total += $item_total;
+            
+            $order_items[] = [
+                'product_id' => $item['id'],
+                'name' => $item['name'] ?? 'Product ' . $item['id'],
+                'image' => $item['image'] ?? '',
+                'quantity' => $item['qty'],
+                'price' => $item['price'],
+                'subtotal' => $item_total
+            ];
+        }
+        
+        // Verify total matches
+        if (abs($calculated_total - $total_amount) > 0.01) {
+            error_log("Total mismatch: Calculated: $calculated_total, Received: $total_amount");
+            // Uncomment the line below to enforce total validation
+            // $errors[] = "Cart total does not match";
         }
         
         if (!empty($errors)) {
-            echo json_encode(['status' => 'error', 'message' => implode("\n", $errors)]);
-            exit;
+            cleanOutputBuffer();
+            sendJsonResponse('error', implode("\n", $errors));
         }
         
-        // Prepare order items
-        $order_items = [];
-        $order_total = 0;
+        // Use the order items we already prepared
+        $order_details = $order_items;
         
-        for ($i = 0; $i < count($product_ids); $i++) {
-            $product_id = intval($product_ids[$i]);
-            $quantity = intval($quantities[$i]);
-            $price = floatval($prices[$i]);
-            
-            if ($product_id > 0 && $quantity > 0 && $price >= 0) {
-                $order_items[] = [
-                    'product_id' => $product_id,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'subtotal' => $price * $quantity
-                ];
-                $order_total += $price * $quantity;
-            }
-        }
-        
-        if (empty($order_items)) {
-            throw new Exception("No valid items in the cart");
-        }
-        
-        // Start transaction
-        $pdo->beginTransaction();
+        // Encode order items as JSON
+        $order_details = json_encode($order_items);
         
         try {
-            // Insert order
+            // Insert order with order_details as JSON
             $stmt = $pdo->prepare("
                 INSERT INTO orders (
                     customer_name, 
@@ -101,6 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     country, 
                     order_notes, 
                     total_amount,
+                    order_details,
                     status,
                     created_at
                 ) VALUES (
@@ -114,11 +175,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     :country,
                     :order_notes,
                     :total_amount,
+                    :order_details,
                     'pending',
                     NOW()
                 )
             ");
             
+            // Use the calculated total instead of the potentially undefined $order_total
             $stmt->execute([
                 ':customer_name' => $customer_name,
                 ':customer_email' => $customer_email,
@@ -129,71 +192,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':pincode' => $pincode,
                 ':country' => $country,
                 ':order_notes' => $order_notes,
-                ':total_amount' => $order_total
+                ':total_amount' => $calculated_total,
+                ':order_details' => $order_details
             ]);
             
             $order_id = $pdo->lastInsertId();
             
-            // Insert order items
-            // Prepare the order items statement
-            $stmt = $pdo->prepare("
-                INSERT INTO order_items (
-                    order_id, 
-                    product_id, 
-                    quantity, 
-                    price, 
-                    subtotal,
-                    created_at
-                ) VALUES (
-                    :order_id,
-                    :product_id,
-                    :quantity,
-                    :price,
-                    :subtotal,
-                    NOW()
-                )
-            ");
-            
-            // Insert each order item
-            foreach ($order_items as $item) {
-                $params = [
-                    'order_id' => $order_id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['subtotal']
-                ];
-                $stmt->execute($params);
-            }
-            
-            // Commit transaction
+            // Commit the transaction
             $pdo->commit();
             
-            // Send order confirmation email (you can implement this function)
-            // sendOrderConfirmationEmail($order_id, $customer_email, $customer_name);
-            
-            echo json_encode([
-                'status' => 'success',
-                'message' => 'Order placed successfully!',
-                'order_id' => $order_id
+            // Send success response
+            sendJsonResponse('success', 'Order placed successfully!', [
+                'order_id' => $order_id,
+                'redirect' => 'thank-you.php?order_id=' . $order_id
             ]);
             
         } catch (Exception $e) {
-            $pdo->rollBack();
-            throw $e;
+            if (isset($pdo)) {
+                $pdo->rollBack();
+            }
+            error_log('Checkout Error: ' . $e->getMessage());
+            sendJsonResponse('error', 'Error processing your order: ' . $e->getMessage());
         }
-        
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Error processing your order: ' . $e->getMessage()
-        ]);
+        error_log('Unexpected Error: ' . $e->getMessage());
+        sendJsonResponse('error', 'An unexpected error occurred. Please try again.');
     }
-} else {
-    http_response_code(405);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Method not allowed'
-    ]);
-}
