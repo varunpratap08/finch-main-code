@@ -35,31 +35,37 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f5f7fb;
             color: #333;
-            padding-top: 80px;
+            padding-top: 80px; /* Proper spacing for fixed header */
+            margin: 0;
+            min-height: 100vh; /* Ensures full viewport height */
         }
 
         .cart-container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            margin: 0 auto;
+            padding: 2rem 1rem 4rem; /* Added more bottom padding for footer */
+            min-height: calc(100vh - 280px); /* Account for header and footer */
         }
 
         .cart-header {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
+            background: #ffffff;
+            padding: 1rem 2rem;
             margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            z-index: 1;
         }
 
         .cart-title {
-            font-weight: 700;
-            color: var(--dark);
+            font-weight: 600;
+            color: #32353a;
             margin: 0;
             font-size: 1.75rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            font-family: var(--heading-font, "Montserrat", sans-serif);
         }
 
         .cart-title i {
@@ -254,7 +260,7 @@
 
     <div class="cart-container">
         <div class="cart-header">
-            <h1 class="cart-title"><i class="bi bi-cart3"></i> Your Shopping Cart</h1>
+            <h1 class="cart-title"><i class="bi bi-cart3"></i> You Shopping Cart</h1>
         </div>
         
         <div class="row g-4">
@@ -284,7 +290,7 @@
                         <span>Total</span>
                         <span id="total">₹0.00</span>
                     </div>
-                    <button class="btn-checkout" id="checkoutBtn" disabled>
+                    <button class="btn-checkout" id="checkoutBtn" onclick="proceedToCheckout()" disabled>
                         <i class="bi bi-lock-fill"></i> Proceed to Checkout
                     </button>
                 </div>
