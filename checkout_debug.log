@@ -1,0 +1,136 @@
+[2025-06-08 16:37:23] New checkout request received
+[2025-06-08 16:37:23] Received data: Array
+(
+    [name] => abs
+    [email] => abs@gmail.com
+    [phone] => 1234567890
+    [address] => asbxz s
+    [notes] => 
+    [items] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 1
+                    [name] => Mini Cupboard (Ultra)
+                    [price] => 0
+                    [image] => uploads/product/1748879926_Cupbaord Lock (Premium) Black.jpg
+                    [qty] => 1
+                )
+
+        )
+
+)
+
+[2025-06-08 16:37:23] Processing cart: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [name] => Mini Cupboard (Ultra)
+            [price] => 0
+            [image] => uploads/product/1748879926_Cupbaord Lock (Premium) Black.jpg
+            [qty] => 1
+        )
+
+)
+
+[2025-06-08 16:37:23] ERROR: Invalid cart item format
+Stack trace: #0 {main}
+[2025-06-08 16:46:25] New checkout request received
+[2025-06-08 16:46:25] Received data: Array
+(
+    [name] => abs
+    [email] => abs@gmail.com
+    [phone] => 1234567890
+    [address] => asbxz s
+    [notes] => 
+    [items] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 1
+                    [name] => Mini Cupboard (Ultra)
+                    [price] => 0
+                    [image] => uploads/product/1748879926_Cupbaord Lock (Premium) Black.jpg
+                    [qty] => 1
+                )
+
+        )
+
+)
+
+[2025-06-08 16:46:25] Processing cart: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [name] => Mini Cupboard (Ultra)
+            [price] => 0
+            [image] => uploads/product/1748879926_Cupbaord Lock (Premium) Black.jpg
+            [qty] => 1
+        )
+
+)
+
+[2025-06-08 16:46:25] Processing cart item 0: Array
+(
+    [id] => 1
+    [name] => Mini Cupboard (Ultra)
+    [price] => 0
+    [image] => uploads/product/1748879926_Cupbaord Lock (Premium) Black.jpg
+    [qty] => 1
+)
+
+[2025-06-08 16:46:25] Order placed successfully. Order ID: 6
+[2025-06-08 22:56:13] New checkout request received
+[2025-06-08 22:56:13] Received data: Array
+(
+    [name] => avsnn
+    [email] => a@gmail.com
+    [phone] => 1234567890
+    [address] => absxss
+    [notes] => 
+    [items] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 18
+                    [name] => Cupboard Lock (Wave)
+                    [price] => 0
+                    [quantity] => 1
+                    [size] => Not specified
+                    [finish] => Not specified
+                    [image] => uploads/main_68459a569997b.jpg
+                )
+
+        )
+
+)
+
+[2025-06-08 22:56:13] Processing cart: Array
+(
+    [0] => Array
+        (
+            [id] => 18
+            [name] => Cupboard Lock (Wave)
+            [price] => 0
+            [quantity] => 1
+            [size] => Not specified
+            [finish] => Not specified
+            [image] => uploads/main_68459a569997b.jpg
+        )
+
+)
+
+[2025-06-08 22:56:13] Processing cart item 0: Array
+(
+    [id] => 18
+    [name] => Cupboard Lock (Wave)
+    [price] => 0
+    [quantity] => 1
+    [size] => Not specified
+    [finish] => Not specified
+    [image] => uploads/main_68459a569997b.jpg
+)
+
+[2025-06-08 22:56:13] Order placed successfully. Order ID: 7
