@@ -295,62 +295,299 @@
         </div>
     </div>
 <script>
-// Use global cart functions from header.php
+// Wait for the DOM to be fully loaded before initializing the cart
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, initializing cart...');
+    
+    // Initialize cart functions
+    const cartFunctions = {
+        getCart: function() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                console.log('Getting cart:', cart);
+                return Array.isArray(cart) ? cart : [];
+            } catch (e) {
+                console.error('Error parsing cart from localStorage:', e);
+                return [];
+            }
+        },
+        
+        updateCartUI: function() {
+            const cart = this.getCart();
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                const itemCount = cart.reduce((total, item) => total + (parseInt(item.qty) || parseInt(item.quantity) || 1), 0);
+                cartCount.textContent = itemCount > 0 ? itemCount : '';
+                cartCount.style.display = itemCount > 0 ? 'flex' : 'none';
+            }
+            
+            // Update the cart items display
+            this.renderCartItems();
+        },
+        
+        renderCartItems: function() {
+            const cart = this.getCart();
+            const cartItemsContainer = document.getElementById('cartItems');
+            const subtotalElement = document.getElementById('subtotal');
+            const totalElement = document.getElementById('total');
+            
+            if (!cartItemsContainer) return;
+            
+            // Clear the container first
+            cartItemsContainer.innerHTML = '';
+            
+            console.log('Rendering cart items:', cart);
+            
+            if (!cart || cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">
+                            <i class="bi bi-cart-x"></i>
+                        </div>
+                        <h3>Your cart is empty</h3>
+                        <p class="mb-4">Looks like you haven't added any products to your cart yet.</p>
+                        <a href="products.php" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Continue Shopping
+                        </a>
+                    </div>`;
+                
+                if (subtotalElement) subtotalElement.textContent = '₹0.00';
+                if (totalElement) totalElement.textContent = '₹0.00';
+                
+                // Disable checkout button
+                const checkoutBtn = document.getElementById('checkoutBtn');
+                if (checkoutBtn) checkoutBtn.disabled = true;
+                
+                return;
+            }
+            
+            // Calculate subtotal and render items
+            let subtotal = 0;
+            const cartItemsHTML = cart.map((item, idx) => {
+                const quantity = parseInt(item.qty || item.quantity || 1);
+                const price = parseFloat(item.price || 0);
+                const itemTotal = quantity * price;
+                subtotal += itemTotal;
+                
+                const imageSrc = item.image && item.image !== 'undefined' ? item.image : 'assets/img/placeholder-product.jpg';
+                
+                return `
+                    <div class="cart-item" data-index="${idx}">
+                        <input type="checkbox" class="item-checkbox" data-index="${idx}" checked style="margin-right: 10px; width: 18px; height: 18px;">
+                        <img src="${imageSrc}" alt="${item.name || 'Product'}" class="cart-item-img" onerror="this.src='assets/img/placeholder-product.jpg'">
+                        <div class="cart-item-details">
+                            <h3 class="cart-item-title">${item.name || 'Product'}</h3>
+                            <p class="cart-item-price">₹${price.toFixed(2)}</p>
+                            <div class="quantity-selector">
+                                <button type="button" class="quantity-btn minus" data-action="decrease" data-index="${idx}">-</button>
+                                <input type="number" class="quantity-input" 
+                                       value="${quantity}" 
+                                       min="1" 
+                                       data-index="${idx}">
+                                <button type="button" class="quantity-btn plus" data-action="increase" data-index="${idx}">+</button>
+                            </div>
+                            <p class="cart-item-subtotal">Subtotal: ₹${itemTotal.toFixed(2)}</p>
+                        </div>
+                        <button class="remove-btn" data-action="remove" data-index="${idx}" title="Remove item">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>`;
+            }).join('');
+            
+            cartItemsContainer.innerHTML = cartItemsHTML;
+            
+            // Update subtotal and total
+            if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+            if (totalElement) totalElement.textContent = `₹${subtotal.toFixed(2)}`;
+            
+            // Update checkout button state
+            this.updateCheckoutButton();
+        },
+        
+        updateQuantity: function(idx, amount) {
+            const cart = this.getCart();
+            if (cart[idx]) {
+                const currentQty = parseInt(cart[idx].qty || cart[idx].quantity || 1);
+                const newQty = Math.max(1, currentQty + amount);
+                cart[idx].qty = newQty;
+                this.saveCart(cart);
+                
+                // Update the input field
+                const input = document.querySelector(`.quantity-input[data-index="${idx}"]`);
+                if (input) input.value = newQty;
+            }
+        },
+        
+        updateQuantityInput: function(idx, value) {
+            const cart = this.getCart();
+            if (cart[idx]) {
+                const newQty = Math.max(1, parseInt(value) || 1);
+                cart[idx].qty = newQty;
+                this.saveCart(cart);
+            }
+        },
+        
+        removeFromCart: function(idx) {
+            const cart = this.getCart();
+            if (cart[idx]) {
+                cart.splice(idx, 1);
+                this.saveCart(cart);
+            }
+        },
+        
+        saveCart: function(cart) {
+            try {
+                localStorage.setItem('cart', JSON.stringify(cart));
+                this.updateCartUI();
+            } catch (e) {
+                console.error('Error saving cart:', e);
+            }
+        },
+        
+        updateCheckoutButton: function() {
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                const checked = document.querySelectorAll('.item-checkbox:checked').length > 0;
+                checkoutBtn.disabled = !checked;
+            }
+        },
+        
+        handleCartAction: function(e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            
+            const action = target.getAttribute('data-action');
+            const index = parseInt(target.getAttribute('data-index'));
+            
+            if (isNaN(index)) return;
+            
+            e.preventDefault();
+            
+            switch (action) {
+                case 'increase':
+                    this.updateQuantity(index, 1);
+                    break;
+                case 'decrease':
+                    this.updateQuantity(index, -1);
+                    break;
+                case 'remove':
+                    this.removeFromCart(index);
+                    break;
+            }
+        }
+    };
+    
+    // Make cartFunctions available globally
+    window.cartFunctions = cartFunctions;
+    
+    // Initialize the cart UI
+    cartFunctions.updateCartUI();
+    
+    // Set up event delegation for cart actions
+    document.addEventListener('click', function(e) {
+        cartFunctions.handleCartAction(e);
+    });
+    
+    // Handle quantity input changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            if (!isNaN(index)) {
+                cartFunctions.updateQuantityInput(index, e.target.value);
+            }
+        }
+    });
+    
+    // Handle checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('item-checkbox')) {
+            cartFunctions.updateCheckoutButton();
+        }
+    });
+    
+    // Initialize checkout modal if it exists
+    const checkoutModal = document.getElementById('checkoutModal');
+    if (checkoutModal && typeof bootstrap !== 'undefined') {
+        new bootstrap.Modal(checkoutModal, {
+            backdrop: 'static',
+            keyboard: false
+        });
+    }
+    
+    // Handle checkout button click
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+            checkoutModal.show();
+        });
+    }
+});
+
+// Local cart functions for backward compatibility
 function getCart() {
-    return window.cartFunctions.getCart();
+    return window.cartFunctions ? window.cartFunctions.getCart() : [];
 }
 
 function setCart(cart) {
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
-}
-
-function updateQuantity(idx, amount) {
-    const cart = getCart();
-    if (cart[idx]) {
-        const currentQty = cart[idx].qty || cart[idx].quantity || 1;
-        const newQty = Math.max(1, currentQty + amount);
-        window.cartFunctions.updateQuantity(cart[idx].id, newQty);
-        updateCartUI();
-    }
-}
-
-function updateQuantityInput(idx, value) {
-    const cart = getCart();
-    if (cart[idx]) {
-        const newQty = Math.max(1, parseInt(value) || 1);
-        window.cartFunctions.updateQuantity(cart[idx].id, newQty);
-        updateCartUI();
-    }
-}
-
-function removeFromCart(idx) {
-    const cart = getCart();
-    if (cart[idx]) {
-        window.cartFunctions.removeFromCart(cart[idx].id);
-        updateCartUI();
+    if (window.cartFunctions) {
+        window.cartFunctions.saveCart(cart);
     }
 }
 
 function updateCartUI() {
+    if (window.cartFunctions) {
+        window.cartFunctions.updateCartUI();
+    }
+}
+
+function updateQuantity(idx, amount) {
+    if (window.cartFunctions) {
+        window.cartFunctions.updateQuantity(idx, amount);
+    }
+}
+
+function updateQuantityInput(idx, value) {
+    if (window.cartFunctions) {
+        window.cartFunctions.updateQuantityInput(idx, value);
+    }
+}
+
+function removeFromCart(idx) {
+    if (window.cartFunctions) {
+        window.cartFunctions.removeFromCart(idx);
+    }
+}
+
+function updateCheckoutButton() {
+    if (window.cartFunctions) {
+        window.cartFunctions.updateCheckoutButton();
+    }
+}
+
+// Handle the proceed to checkout button
+function proceedToCheckout() {
     const cart = getCart();
-    const cartItemsContainer = document.getElementById('cartItems');
-    const subtotalElement = document.getElementById('subtotal');
-    const totalElement = document.getElementById('total');
+    if (cart.length === 0) {
+        alert('Your cart is empty. Please add items to your cart before checking out.');
+        return;
+    }
     
-    // Helper function to ensure correct image path
-    const getImagePath = (imagePath) => {
-        if (!imagePath) return 'assets/img/placeholder-product.jpg';
-        if (imagePath.startsWith('http') || imagePath.startsWith('/') || imagePath.startsWith('assets/')) {
-            return imagePath;
-        }
-        return 'assets/img/' + imagePath;
-    };
+    // Show the checkout modal
+    const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    checkoutModal.show();
+    
+    // Update the checkout modal with current cart items
+    updateCheckoutModal();
+    
     const checkoutBtn = document.getElementById('checkoutBtn');
     let continueShoppingBtn = document.querySelector('.continue-shopping-btn');
 
     // Clear the container first
+    if (!cartItemsContainer) return;
     cartItemsContainer.innerHTML = '';
+    
+    console.log('Updating cart UI with items:', cart); // Debug log
 
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = `
@@ -410,7 +647,11 @@ function updateCartUI() {
     
     if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
     if (totalElement) totalElement.textContent = `₹${subtotal.toFixed(2)}`;
-    if (checkoutBtn) checkoutBtn.disabled = false;
+    if (checkoutBtn) {
+        // Enable if at least one item is checked
+        const checked = document.querySelectorAll('.item-checkbox:checked').length > 0;
+        checkoutBtn.disabled = !checked;
+    }
     
     // Add or update "Continue Shopping" button
     if (!continueShoppingBtn) {
@@ -432,29 +673,34 @@ function updateCartUI() {
 
 // Handle cart actions with event delegation
 function handleCartAction(e) {
+    if (!window.cartFunctions) return;
+    
     const target = e.target.closest('[data-action]');
     if (!target) return;
 
     const action = target.getAttribute('data-action');
     const index = parseInt(target.getAttribute('data-index'));
-    const cart = getCart();
     
-    if (isNaN(index) || index < 0 || index >= cart.length) return;
-
+    if (isNaN(index)) return;
+    
+    e.preventDefault();
+    
+    const cart = window.cartFunctions.getCart();
+    if (!cart[index]) return;
+    
     switch (action) {
         case 'increase':
-            updateQuantity(index, 1);
+            window.cartFunctions.updateQuantity(cart[index].id, (cart[index].qty || 1) + 1);
             break;
         case 'decrease':
-            updateQuantity(index, -1);
+            window.cartFunctions.updateQuantity(cart[index].id, Math.max(1, (cart[index].qty || 1) - 1));
             break;
         case 'remove':
-            removeFromCart(index);
+            window.cartFunctions.removeFromCart(cart[index].id);
             break;
     }
 }
 
-// Handle quantity input changes
 function handleQuantityInput(e) {
     if (!e.target.classList.contains('quantity-input')) return;
     
@@ -543,12 +789,48 @@ function updateCheckoutModal() {
                 }
             }
         }
-        if (item.finish) {
-            const finishSelect = clone.querySelector('.item-finish');
-            if (finishSelect) {
-                finishSelect.value = item.finish;
-            }
+        // Add finish dropdown
+        const finishSelect = clone.querySelector('.item-finish');
+        if (finishSelect) {
+            // Static finish options (customize as needed)
+            const finishes = [
+                { value: '', label: 'Choose Finish' },
+                { value: 'sn', label: 'Satin Nickel' },
+                { value: 'bk', label: 'Black' },
+                { value: 'an', label: 'Antique Nickel' },
+                { value: 'gd', label: 'Gold' },
+                { value: 'rg', label: 'Rose Gold' },
+                { value: 'ch', label: 'Chrome' },
+                { value: 'gl', label: 'Glossy' }
+            ];
+            finishSelect.innerHTML = '';
+            finishes.forEach(finish => {
+                const option = document.createElement('option');
+                option.value = finish.value;
+                option.textContent = finish.label;
+                if (item.finish && item.finish === finish.value) option.selected = true;
+                finishSelect.appendChild(option);
+            });
+            if (item.finish) finishSelect.value = item.finish;
         }
+        
+        // Remove any old hidden inputs
+        clone.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
+        // Add hidden inputs for backend
+        const hiddenFields = [
+            { name: `items[${index}][product_id]`, value: item.id },
+            { name: `items[${index}][size]`, value: item.size || '' },
+            { name: `items[${index}][finish]`, value: item.finish || '' },
+            { name: `items[${index}][quantity]`, value: item.qty || 1 },
+            { name: `items[${index}][price]`, value: item.price }
+        ];
+        hiddenFields.forEach(field => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field.name;
+            input.value = field.value;
+            clone.appendChild(input);
+        });
         
         cartItemsList.appendChild(clone);
         total += item.price * item.qty;
@@ -624,129 +906,134 @@ function initializeModal() {
         });
     }
     
-    // Handle form submission
+    // Handle checkout form submission
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
+        // Set form encoding type to support file uploads if needed
+        checkoutForm.enctype = 'multipart/form-data';
+        
+        checkoutForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            
-            // Get all the form data
-            const formData = new FormData(this);
-            const cart = getCart();
-            
-            // Update cart items with size and finish from the form
-            const sizes = formData.getAll('item_size[]');
-            const finishes = formData.getAll('item_finish[]');
-            
-            cart.forEach((item, index) => {
-                if (sizes[index]) item.size = sizes[index];
-                if (finishes[index]) item.finish = finishes[index];
-            });
-            
-            // Save the updated cart
-            setCart(cart);
-            
-            // Prepare the order data
-            const orderData = {
-                customer_name: formData.get('customer_name'),
-                customer_email: formData.get('customer_email'),
-                customer_phone: formData.get('customer_phone'),
-                shipping_address: formData.get('shipping_address'),
-                total_amount: formData.get('total_amount'),
-                cart_items: JSON.stringify(cart)
-            };
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             
-            // Log for debugging
-            console.log('Submitting order data:', orderData);
-            
-            // Send data to server
-            fetch('inc/process_checkout.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams(orderData)
-            })
-            .then(response => {
-                // First, get the response as text
-                return response.text().then(text => {
+            try {
+                // Get form data
+                const formData = new FormData(this);
+                
+                // Add cart items as a JSON string
+                const cartItems = [];
+                const cartItemElements = document.querySelectorAll('#checkoutItemsList .cart-item-details');
+                
+                if (cartItemElements.length === 0) {
+                    throw new Error('Your cart is empty');
+                }
+                
+                // Process each cart item
+                cartItemElements.forEach((item, index) => {
                     try {
-                        // Try to parse as JSON
-                        const data = JSON.parse(text);
-                        
-                        // If the response was not OK, throw an error with the message
-                        if (!response.ok) {
-                            throw new Error(data.message || 'Server error occurred');
+                        const itemId = item.querySelector('.product-id')?.value;
+                        const quantity = parseInt(item.querySelector('.quantity-input')?.value || 1);
+                        const price = parseFloat(item.querySelector('.product-price-input')?.value || 0);
+                        const name = item.querySelector('.product-name')?.textContent.trim() || `Product ${itemId}`;
+                        const image = item.querySelector('img')?.src || '';
+                        const size = item.querySelector('.item-size')?.value || 'Not specified';
+                        const finish = item.querySelector('.item-finish')?.value || 'Not specified';
+
+                        if (!itemId) {
+                            throw new Error(`Missing product ID in item ${index + 1}`);
                         }
                         
-                        return data;
-                    } catch (e) {
-                        // If not valid JSON, handle as text error
-                        console.error('Response was not JSON:', text);
-                        
-                        // If the response was OK but not JSON, something is wrong
-                        if (response.ok) {
-                            throw new Error('Invalid response from server');
+                        if (isNaN(quantity) || quantity < 1) {
+                            throw new Error(`Invalid quantity for item: ${name}`);
                         }
                         
-                        // If we have a non-JSON error response, use its text
-                        throw new Error(text || 'Server error occurred');
+                        cartItems.push({
+                            id: parseInt(itemId),
+                            product_id: parseInt(itemId),
+                            name: name,
+                            price: price,
+                            qty: quantity,
+                            image: image,
+                            size: size,
+                            finish: finish
+                        });
+                    } catch (error) {
+                        console.error(`Error processing cart item ${index + 1}:`, error);
+                        throw new Error(`Error with item ${index + 1}: ${error.message}`);
                     }
                 });
-            })
-            .then(data => {
-                console.log('Response data:', data);
                 
-                if (data.status === 'success') {
-                    // Clear cart on success
-                    localStorage.setItem('cart', '[]');
-                    updateCartUI();
-                    
-                    // Show success message
-                    showToast(data.message || 'Order placed successfully!', 'success');
-                    
-                    // Close modal
-                    if (typeof bootstrap !== 'undefined') {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
-                        if (modal) modal.hide();
-                    }
-                    
-                    // Redirect to thank you page with order ID
-                    if (data.data && data.data.redirect) {
-                        window.location.href = data.data.redirect;
-                    } else {
-                        // Fallback to default thank you page
-                        window.location.href = 'thank-you.php' + (data.data && data.data.order_id ? '?order_id=' + data.data.order_id : '');
-                    }
-                } else {
-                    throw new Error(data.message || 'Failed to place order');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                let errorMessage = 'An error occurred. Please try again.';
+                // Add cart items as JSON string
+                formData.append('cart_items', JSON.stringify(cartItems));
                 
-                // Try to extract a more specific error message
-                if (error.message.includes('JSON')) {
-                    errorMessage = 'Invalid response from server. Please try again.';
-                } else if (error.message) {
-                    errorMessage = error.message;
+                // Add total amount if not already in form
+                if (!formData.has('total_amount')) {
+                    const totalAmount = parseFloat(document.querySelector('.cart-total-amount')?.textContent?.replace(/[^0-9.]/g, '') || 0);
+                    formData.append('total_amount', totalAmount);
                 }
                 
-                showToast(errorMessage, 'error');
-            })
-            .finally(() => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
+                // Log form data for debugging
+                const formDataObj = {};
+                formData.forEach((value, key) => {
+                    formDataObj[key] = value;
+                });
+                console.log('Form data to submit:', formDataObj);
+                
+                // Submit the form data
+                const response = await fetch('inc/process_checkout.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                // Handle response
+                const responseText = await response.text();
+                let data;
+                
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (e) {
+                    console.error('Error parsing response:', e);
+                    throw new Error('Invalid response from server');
                 }
-            });
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `Server returned status ${response.status}`);
+                }
+                
+                // Success - clear cart and redirect
+                localStorage.removeItem('cart');
+                
+                // Show success message
+                showToast('Order placed successfully!', 'success');
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Redirect to thank you page
+                const orderId = data.order_id || (data.data && data.data.order_id) || '';
+                window.location.href = 'thank-you.php?order_id=' + encodeURIComponent(orderId);
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                showToast(error.message || 'An error occurred. Please try again.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    }
+
         });
     }
 }
@@ -785,70 +1072,52 @@ function updateCheckoutModal() {
     selectedItems.forEach((item, index) => {
         const clone = template.content.cloneNode(true);
         
-        // Set basic product info
-        clone.querySelector('.product-name').textContent = item.name;
-        clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
-        clone.querySelector('.product-quantity').textContent = item.qty;
-        
-        // Set hidden inputs
-        const hiddenInputs = {
-            'product-id': item.id,
-            'product-quantity-input': item.qty,
-            'product-price-input': item.price
-        };
-        
-        Object.entries(hiddenInputs).forEach(([className, value]) => {
-            const el = clone.querySelector(`.${className}`);
-            if (el) el.value = value;
-        });
-        
         // Set product image - ensure the path is correct
         const imgEl = clone.querySelector('img');
         if (imgEl) {
-            // Check if the image path is relative and doesn't start with / or http
             let imagePath = item.image || 'assets/img/placeholder-product.jpg';
             if (!imagePath.startsWith('http') && !imagePath.startsWith('/') && !imagePath.startsWith('assets/')) {
                 imagePath = 'assets/img/' + imagePath;
             }
             imgEl.src = imagePath;
             imgEl.alt = item.name || 'Product Image';
-            // Ensure image is visible
             imgEl.style.display = 'block';
             imgEl.style.maxHeight = '80px';
             imgEl.style.width = 'auto';
             imgEl.classList.add('img-fluid', 'rounded');
         }
-        
-        // Populate size dropdown from item.sizes (admin-provided)
+        // Set product info
+        clone.querySelector('.product-name').textContent = item.name;
+        clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
+        clone.querySelector('.product-quantity').textContent = item.qty;
+        // Set hidden inputs
+        const hiddenInputs = {
+            'product-id': item.id,
+            'product-quantity-input': item.qty,
+            'product-price-input': item.price
+        };
+        Object.entries(hiddenInputs).forEach(([className, value]) => {
+            const el = clone.querySelector(`.${className}`);
+            if (el) el.value = value;
+        });
+        // Add size dropdown
         const sizeSelect = clone.querySelector('.item-size');
         if (sizeSelect) {
-            // Clear existing options except the first one (Choose Size)
             while (sizeSelect.options.length > 1) sizeSelect.remove(1);
-            
-            // Add sizes from item.sizes if available
             if (Array.isArray(item.sizes) && item.sizes.length > 0) {
                 item.sizes.forEach(size => {
-                    if (size && typeof size === 'string') {
-                        const option = new Option(size, size);
-                        sizeSelect.add(option);
-                    } else if (size && typeof size === 'object' && size.size) {
-                        // Handle case where sizes are objects with size and price
-                        const option = new Option(size.size, size.size);
-                        sizeSelect.add(option);
-                    }
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    if (item.size && item.size === size) option.selected = true;
+                    sizeSelect.appendChild(option);
                 });
-                
-                // Select the first size by default if none is selected
-                if (sizeSelect.options.length > 1 && !item.size) {
-                    sizeSelect.selectedIndex = 1;
-                }
             } else {
-                // Fallback if no sizes are provided
-                const option = new Option('Standard', 'Standard');
-                sizeSelect.add(option);
+                const option = document.createElement('option');
+                option.value = 'Standard';
+                option.textContent = 'Standard';
+                sizeSelect.appendChild(option);
             }
-            
-            // Set selected size if available
             if (item.size) {
                 for (let i = 0; i < sizeSelect.options.length; i++) {
                     if (sizeSelect.options[i].value === item.size) {
@@ -858,14 +1127,47 @@ function updateCheckoutModal() {
                 }
             }
         }
-        
-        // Set finish if available
-        if (item.finish) {
-            const finishSelect = clone.querySelector('.item-finish');
-            if (finishSelect) {
-                finishSelect.value = item.finish;
-            }
+        // Add finish dropdown
+        const finishSelect = clone.querySelector('.item-finish');
+        if (finishSelect) {
+            // Static finish options (customize as needed)
+            const finishes = [
+                { value: '', label: 'Choose Finish' },
+                { value: 'sn', label: 'Satin Nickel' },
+                { value: 'bk', label: 'Black' },
+                { value: 'an', label: 'Antique Nickel' },
+                { value: 'gd', label: 'Gold' },
+                { value: 'rg', label: 'Rose Gold' },
+                { value: 'ch', label: 'Chrome' },
+                { value: 'gl', label: 'Glossy' }
+            ];
+            finishSelect.innerHTML = '';
+            finishes.forEach(finish => {
+                const option = document.createElement('option');
+                option.value = finish.value;
+                option.textContent = finish.label;
+                if (item.finish && item.finish === finish.value) option.selected = true;
+                finishSelect.appendChild(option);
+            });
+            if (item.finish) finishSelect.value = item.finish;
         }
+        // Remove any old hidden inputs
+        clone.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
+        // Add hidden inputs for backend
+        const hiddenFields = [
+            { name: `items[${index}][product_id]`, value: item.id },
+            { name: `items[${index}][size]`, value: item.size || '' },
+            { name: `items[${index}][finish]`, value: item.finish || '' },
+            { name: `items[${index}][quantity]`, value: item.qty || 1 },
+            { name: `items[${index}][price]`, value: item.price }
+        ];
+        hiddenFields.forEach(field => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field.name;
+            input.value = field.value;
+            clone.appendChild(input);
+        });
         
         cartItemsList.appendChild(clone);
         total += item.price * item.qty;
@@ -1021,66 +1323,180 @@ function updateTotalPrice() {
 }
 
 // Handle checkout form submission
+const checkoutForm = document.getElementById('checkoutForm');
 if (checkoutForm) {
     checkoutForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const submitBtn = this.querySelector('button[type="submit"]');
+        // Validate form
+        if (!this.checkValidity()) {
+            e.stopPropagation();
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // Get the form data
+        const form = this;
+        const formData = new FormData(form);
+        const cartItems = [];
+        
+        // Get all cart items from the form
+        document.querySelectorAll('#checkoutItemsList .cart-item-details').forEach((item, index) => {
+            try {
+                const itemId = item.querySelector('.product-id')?.value;
+                const quantity = item.querySelector('.quantity-input')?.value || 1;
+                const size = item.querySelector('.item-size')?.value || '';
+                const finish = item.querySelector('.item-finish')?.value || '';
+                const price = item.querySelector('.product-price-input')?.value || 0;
+                const name = item.querySelector('.product-name')?.textContent.trim() || `Product ${itemId}`;
+                const image = item.querySelector('img')?.src || '';
+                
+                if (itemId) {
+                    const cartItem = {
+                        id: parseInt(itemId),
+                        qty: parseInt(quantity) || 1,
+                        price: parseFloat(price) || 0,
+                        name: name,
+                        image: image,
+                        size: size,
+                        finish: finish,
+                        product_id: parseInt(itemId)  // Add product_id as an alias for id
+                    };
+                    
+                    console.log('Adding cart item:', cartItem);
+                    cartItems.push(cartItem);
+                } else {
+                    console.error('Item ID is missing for cart item');
+                }
+            } catch (error) {
+                console.error('Error processing cart item:', error);
+            }
+        });
+        
+        console.log('All cart items:', cartItems);
+        
+        if (cartItems.length === 0) {
+            showToast('Please add items to your cart before checkout.', 'error');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
         
-        const formData = new FormData(this);
-        const cart = getCart();
+        // Prepare the complete order data as JSON
+        const orderData = {
+            customer_name: formData.get('customer_name'),
+            customer_email: formData.get('customer_email'),
+            customer_phone: formData.get('customer_phone'),
+            shipping_address: formData.get('shipping_address'),
+            additional_notes: formData.get('additional_notes') || '',
+            total_amount: parseFloat(document.getElementById('totalPriceInput')?.value) || 0,
+            cart_items: cartItems
+        };
         
-        // In the checkout form submission handler, use only selected items
-        const selectedItems = getSelectedCartItems();
-        if (selectedItems.length === 0) {
-            showToast('Please select at least one product to checkout.');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
-            return;
-        }
-        // Add selected cart items to form data
-        selectedItems.forEach((item, index) => {
-            formData.append(`items[${index}][product_id]`, item.id);
-            formData.append(`items[${index}][quantity]`, item.qty);
-            formData.append(`items[${index}][size]`, item.size || '');
-            formData.append(`items[${index}][finish]`, item.finish || '');
-            formData.append(`items[${index}][price]`, item.price);
+        // Log the data being sent
+        console.log('Sending order data:', orderData);
+        
+        console.log('Sending order data:', {
+            ...Object.fromEntries(orderData),
+            cart_items: cartItems
         });
         
-        // Submit the form data
+        // Submit the form data as form data (not JSON)
         fetch('inc/process_checkout.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(orderData),
+            credentials: 'same-origin'
         })
-        .then(response => response.json())
+        .then(async response => {
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+            
+            try {
+                const data = responseText ? JSON.parse(responseText) : {};
+                
+                if (!response.ok) {
+                    // Handle HTTP error status codes
+                    const errorMsg = data.message || `Server returned status ${response.status} ${response.statusText}`;
+                    throw new Error(errorMsg);
+                }
+                
+                return data;
+            } catch (e) {
+                console.error('Error parsing response:', e);
+                // If we can't parse JSON, include the raw response in the error
+                const error = new Error('Invalid server response');
+                error.responseText = responseText;
+                error.status = response.status;
+                throw error;
+            }
+        })
         .then(data => {
+            console.log('Parsed response data:', data);
+            
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            
             if (data.status === 'success') {
-                // Clear the cart and show success message
+                // Clear the cart
                 localStorage.removeItem('cart');
-                checkoutModal.hide();
-                showToast('Order placed successfully!');
                 
-                // Update cart UI
-                updateCartUI();
+                // Show success message
+                showToast('Order placed successfully!', 'success');
                 
-                // Redirect to thank you page after a short delay
-                setTimeout(() => {
-                    window.location.href = 'thank-you.php';
-                }, 1500);
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Redirect to thank you page
+                const orderId = data.order_id || (data.data && data.data.order_id) || '';
+                window.location.href = 'thank-you.php?order_id=' + encodeURIComponent(orderId);
             } else {
-                showToast(data.message || 'Error placing order. Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
+                // Show error message with more details if available
+                const errorMsg = data.message || (data.data && data.data.error) || 'An error occurred. Please try again.';
+                showToast(errorMsg, 'error');
+                console.error('Server error:', data);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('An error occurred. Please try again.');
+            
+            // Reset button state
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
+            
+            // Show error message with more details
+            let errorMsg = 'An error occurred. Please try again.';
+            
+            if (error.responseText) {
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    errorMsg = errorData.message || error.responseText;
+                } catch (e) {
+                    errorMsg = error.responseText || error.message;
+                }
+            } else if (error.message) {
+                errorMsg = error.message;
+            }
+            
+            showToast(errorMsg, 'error');
+            
+            // Log additional error details
+            if (error.status) {
+                console.error('HTTP Status:', error.status);
+            }
+            if (error.responseText) {
+                console.error('Response Text:', error.responseText);
+            }
         });
     });
 }
@@ -1089,7 +1505,6 @@ if (checkoutForm) {
 document.addEventListener('change', function(e) {
     if (e.target.classList.contains('item-checkbox')) {
         updateOrderSummary();
-        
         // Enable/disable checkout button based on selection
         const selectedItems = getSelectedCartItems();
         const checkoutBtn = document.getElementById('checkoutBtn');
@@ -1099,33 +1514,29 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// Handle size changes in the checkout form
+// Handle size and finish changes in the checkout form
 document.addEventListener('change', function(e) {
+    const itemCard = e.target.closest('.cart-item-details');
+    if (!itemCard) return;
+    
     if (e.target.classList.contains('item-size')) {
-        const itemCard = e.target.closest('.cart-item-details');
-        if (itemCard) {
-            // Update the display to show the selected size
-            const sizeDisplay = itemCard.querySelector('.selected-size-display');
-            if (sizeDisplay) {
-                sizeDisplay.textContent = e.target.value || 'Not selected';
-                sizeDisplay.classList.toggle('text-muted', !e.target.value);
-            }
-            
-            // Here you can add logic to update price if different sizes have different prices
-            // For example:
-            // const selectedOption = e.target.options[e.target.selectedIndex];
-            // if (selectedOption && selectedOption.dataset.price) {
-            //     const price = parseFloat(selectedOption.dataset.price);
-            //     // Update price in the cart and UI
-            // }
-            
-            // Update the hidden input for form submission
-            const sizeInput = itemCard.querySelector('input[name$="[size]"]');
-            if (sizeInput) {
-                sizeInput.value = e.target.value;
-            }
+        // Update the hidden input for form submission
+        const sizeInput = itemCard.querySelector('input[name$="[size]"]');
+        if (sizeInput) {
+            sizeInput.value = e.target.value;
         }
+        
+        // You can add logic here to update price if different sizes have different prices
+        // For example:
+        // const selectedOption = e.target.options[e.target.selectedIndex];
+        // if (selectedOption && selectedOption.dataset.price) {
+        //     const price = parseFloat(selectedOption.dataset.price);
+        //     // Update price in the cart and UI
+        // }
     }
+    
+    // Update the order total when size or finish changes
+    updateOrderTotal();
 });
 
 // Handle remove item button in checkout form
@@ -1199,7 +1610,7 @@ document.addEventListener('submit', function(e) {
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <form id="checkoutForm" action="inc/process_checkout.php" method="POST">
+                        <form id="checkoutForm" action="inc/process_checkout.php" method="POST" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -1243,27 +1654,18 @@ document.addEventListener('submit', function(e) {
                                                     <img src="assets/img/placeholder-product.jpg" class="img-fluid rounded" alt="Product Image" style="max-height: 80px; width: auto; object-fit: contain;">
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <h6 class="mb-2 product-name"></h6>
-                                                    <p class="mb-1">Price: <span class="product-price fw-bold"></span></p>
-                                                    <p class="mb-1">Qty: <span class="product-quantity"></span></p>
-                                                    <input type="hidden" class="product-id" name="items[][product_id]">
-                                                    <input type="hidden" class="product-quantity-input" name="items[][quantity]">
-                                                    <input type="hidden" class="product-price-input" name="items[][price]">
-                                                </div>
-                                                <div class="col-md-3">
+                                                    <h6 class="mb-2 product-name">Product Name</h6>
                                                     <div class="mb-2">
-                                                        <label class="form-label small mb-1">Size</label>
-                                                        <select class="form-select form-select-sm item-size" name="item_size[]" required onchange="updateFinishOptions(this)">
-                                                            <option value="">Choose Size</option>
+                                                        <label class="form-label small mb-1">Size <span class="text-danger">*</span></label>
+                                                        <select class="form-select form-select-sm item-size" name="item_size[]" required>
+                                                            <option value="">-- Select Size --</option>
                                                             <!-- Sizes will be populated by JavaScript -->
                                                         </select>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-3">
                                                     <div class="mb-2">
-                                                        <label class="form-label small mb-1">Finish</label>
+                                                        <label class="form-label small mb-1">Finish <span class="text-danger">*</span></label>
                                                         <select class="form-select form-select-sm item-finish" name="item_finish[]" required>
-                                                            <option value="">Choose Finish</option>
+                                                            <option value="">-- Select Finish --</option>
                                                             <option value="sn">Satin Nickel</option>
                                                             <option value="bk">Black</option>
                                                             <option value="an">Antique Nickel</option>
@@ -1273,49 +1675,109 @@ document.addEventListener('submit', function(e) {
                                                             <option value="gl">Glossy</option>
                                                         </select>
                                                     </div>
+                                                    <input type="hidden" class="product-id" name="product_id[]">
+                                                    <input type="hidden" class="product-quantity-input" name="quantity[]">
+                                                    <input type="hidden" class="product-price-input" name="price[]">
+                                                </div>
+                                                <div class="col-md-3 text-md-end">
+                                                    <div class="input-group quantity-selector">
+                                                        <button class="btn btn-outline-secondary btn-sm quantity-btn minus" type="button" data-action="decrease">
+                                                            <i class="bi bi-dash"></i>
+                                                        </button>
+                                                        <input type="number" class="form-control form-control-sm quantity-input" value="1" min="1" aria-label="Quantity">
+                                                        <button class="btn btn-outline-secondary btn-sm quantity-btn plus" type="button" data-action="increase">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-md-end">
+                                                    <h6 class="mb-1 product-price">₹0.00</h6>
+                                                    <input type="hidden" class="product-id" name="product_id[]" value="">
+                                                    <input type="hidden" class="product-quantity-input" name="quantity[]" value="">
+                                                    <input type="hidden" class="product-price-input" name="price[]" value="">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <input type="hidden" name="product_id[]" class="product-id">
-                                    <input type="hidden" name="quantity[]" class="product-quantity-input">
-                                    <input type="hidden" name="price[]" class="product-price-input">
                                 </template>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h5 class="mb-0">Total:</h5>
-                                <h4 class="mb-0">₹<span id="totalPrice">0</span></h4>
-                                <input type="hidden" name="total_amount" id="totalPriceInput">
+                            <div class="mb-3">
+                                <label class="form-label">Additional Notes (optional)</label>
+                                <textarea class="form-control" name="additional_notes" rows="3"></textarea>
                             </div>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-success btn-lg px-4">
-                                    <i class="bi bi-credit-card me-2"></i>Place Order
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-check-circle"></i> Place Order
                                 </button>
                             </div>
                         </form>
                     </div>
-                    </div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<?php include('inc/footer.php'); ?>
+<!-- Back to top button -->
+<a href="#" class="btn btn-primary btn-lg rounded-circle back-to-top" style="position: fixed; bottom: 30px; right: 30px; display: none;">
+    <i class="bi bi-arrow-up"></i>
+</a>
 
 <!-- Vendor JS Files -->
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="assets/vendor/aos/aos.js"></script>
 <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-<script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
 <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
 
-<!-- Template Main JS File -->
+<!-- Main JS File -->
 <script src="assets/js/main.js"></script>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+// Initialize the cart when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, initializing cart...');
+    
+    // Initialize the cart UI
+    console.log('Current cart contents:', getCart());
+    updateCartUI();
+    
+    // Add event delegation for cart actions
+    document.addEventListener('click', handleCartAction);
+    
+    // Add event listener for quantity input changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            if (!isNaN(index)) {
+                updateQuantityInput(index, e.target.value);
+            }
+        }
+    });
+    
+    // Add event listener for checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('item-checkbox')) {
+            updateCheckoutButton();
+        }
+    });
+    
+    // Initialize the checkout modal
+    if (window.bootstrap && typeof bootstrap.Modal !== 'undefined') {
+        initializeModal();
+    }
+});
+
+// Update the checkout button state based on selected items
+function updateCheckoutButton() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        const checked = document.querySelectorAll('.item-checkbox:checked').length > 0;
+        checkoutBtn.disabled = !checked;
+    }
+}
+</script>
 
 </body>
 </html>

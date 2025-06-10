@@ -1,0 +1,96 @@
+[10-Jun-2025 14:33:46 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:33:46 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:33:46 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundarysqARmtsMWD1NGAWq
+[10-Jun-2025 14:33:46 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:33:46 Europe/Berlin] POST data: Array
+(
+    [customer_name] => Shashwat
+    [customer_email] => shashwat123@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => Gorakhpur
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:33:54 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:33:54 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:33:54 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryYHTUepGogmZX3E7q
+[10-Jun-2025 14:33:54 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:33:54 Europe/Berlin] POST data: Array
+(
+    [customer_name] => Shashwat
+    [customer_email] => shashwat123@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => Gorakhpur
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:34:36 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:34:36 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:34:36 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryoghiOAj2cY6uyAbV
+[10-Jun-2025 14:34:36 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:34:36 Europe/Berlin] POST data: Array
+(
+    [customer_name] => deepanshu
+    [customer_email] => a@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => ansmnnd
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:40:10 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:40:10 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:40:10 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryoghiOAj2cY6uyAbV
+[10-Jun-2025 14:40:10 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:40:10 Europe/Berlin] POST data: Array
+(
+    [customer_name] => deepanshu
+    [customer_email] => a@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => ansmnnd
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:40:11 Europe/Berlin] PHP Warning:  Undefined variable $data in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 14:40:11 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: array_merge(): Argument #1 must be of type array, null given in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php:96
+Stack trace:
+#0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
+#1 {main}
+  thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 14:40:18 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:40:18 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:40:18 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryoghiOAj2cY6uyAbV
+[10-Jun-2025 14:40:18 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:40:18 Europe/Berlin] POST data: Array
+(
+    [customer_name] => deepanshu
+    [customer_email] => a@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => ansmnnd
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:40:18 Europe/Berlin] PHP Warning:  Undefined variable $data in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 14:40:18 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: array_merge(): Argument #1 must be of type array, null given in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php:96
+Stack trace:
+#0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
+#1 {main}
+  thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 14:40:22 Europe/Berlin] === New Request ===
+[10-Jun-2025 14:40:22 Europe/Berlin] Request Method: POST
+[10-Jun-2025 14:40:22 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryZ0LNR49NmeiG9u8G
+[10-Jun-2025 14:40:22 Europe/Berlin] Raw input: 
+[10-Jun-2025 14:40:22 Europe/Berlin] POST data: Array
+(
+    [customer_name] => deepanshu
+    [customer_email] => a@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => ansmnnd
+    [additional_notes] => 
+)
+
+[10-Jun-2025 14:40:22 Europe/Berlin] PHP Warning:  Undefined variable $data in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 14:40:22 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: array_merge(): Argument #1 must be of type array, null given in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php:96
+Stack trace:
+#0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
+#1 {main}
+  thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
