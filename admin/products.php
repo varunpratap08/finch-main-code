@@ -348,10 +348,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dimension_image = !empty($_FILES["dimension_image"]['name']) ? 
                      uploadImage($_FILES["dimension_image"], $target_dir, 'dim_') : '';
     
-    // Handle selected finishes
-    $finish_ids = isset($_POST['finishes']) && is_array($_POST['finishes']) ? 
-                 implode(',', array_map('intval', $_POST['finishes'])) : '';
+    // Upload finish images (optional)
+    $sn_image = !empty($_FILES["sn_image"]['name']) ? 
+               uploadImage($_FILES["sn_image"], $target_dir, 'sn_') : '';
+    $bk_image = !empty($_FILES["bk_image"]['name']) ? 
+               uploadImage($_FILES["bk_image"], $target_dir, 'bk_') : '';
+    $an_image = !empty($_FILES["an_image"]['name']) ? 
+               uploadImage($_FILES["an_image"], $target_dir, 'an_') : '';
+    $gd_image = !empty($_FILES["gd_image"]['name']) ? 
+               uploadImage($_FILES["gd_image"], $target_dir, 'gd_') : '';
+    $rg_image = !empty($_FILES["rg_image"]['name']) ? 
+               uploadImage($_FILES["rg_image"], $target_dir, 'rg_') : '';
     
+
     try {
         // First, check if the dimension_image column exists, if not, add it
         try {
@@ -360,9 +369,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Column might already exist, ignore the error
         }
 
+        // First, check if the finish image columns exist, if not, add them
+        try {
+            $pdo->query("ALTER TABLE products 
+                ADD COLUMN IF NOT EXISTS sn_image VARCHAR(255) NULL DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS bk_image VARCHAR(255) NULL DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS an_image VARCHAR(255) NULL DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS gd_image VARCHAR(255) NULL DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS rg_image VARCHAR(255) NULL DEFAULT NULL");
+        } catch (PDOException $e) {
+            // Columns might already exist, ignore the error
+        }
+
         $stmt = $pdo->prepare("INSERT INTO products 
-            (product_name, category, sub_category, description, pricing, product_image, image2, image3, dimension_image, finish_ids) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (product_name, category, sub_category, description, pricing, product_image, 
+             image2, image3, dimension_image,
+             sn_image, bk_image, an_image, gd_image, rg_image) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $product_name, 
             $category_id, 
@@ -373,7 +396,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $image2,
             $image3,
             $dimension_image,
-            $finish_ids
+            $sn_image,
+            $bk_image,
+            $an_image,
+            $gd_image,
+            $rg_image
         ]);
         if ($stmt->rowCount() > 0) {
             echo "<div style='color: green; font-weight: bold;'>Product added successfully!</div>";
@@ -434,49 +461,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <textarea class="form-control" name="description" id="description"></textarea>
         </div>
 
-        <!-- Finishes -->
-        <div class="mb-3">
-          <label class="form-label">Available Finishes</label>
-          <div class="row">
-            <?php
-            // Fetch all finishes
-            $finishes = [];
-            try {
-                $stmt = $pdo->query("SELECT * FROM finishes ORDER BY name");
-                $finishes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (PDOException $e) {
-                // Handle error
-            }
-            
-            if (!empty($finishes)) {
-                foreach ($finishes as $finish) {
-                    $finishId = $finish['id'];
-                    $finishName = htmlspecialchars($finish['name']);
-                    $finishImage = !empty($finish['image']) ? '../' . $finish['image'] : 'assets/img/no-image.png';
-                    ?>
-                    <div class="col-md-3 col-6 mb-3">
-                        <div class="card h-100">
-                            <div class="text-center p-2">
-                                <img src="<?php echo $finishImage; ?>" alt="<?php echo $finishName; ?>" class="img-fluid" style="max-height: 80px; width: auto;">
-                            </div>
-                            <div class="card-body p-2 text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="finishes[]" value="<?php echo $finishId; ?>" id="finish_<?php echo $finishId; ?>">
-                                    <label class="form-check-label" for="finish_<?php echo $finishId; ?>">
-                                        <?php echo $finishName; ?>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php
-                }
-            } else {
-                echo '<div class="col-12"><p>No finishes found. Please add finishes first.</p></div>';
-            }
-            ?>
-          </div>
-        </div>
 
         <!-- Product Images -->
         <div class="mb-3">
@@ -508,6 +492,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="dimension_image" class="form-label">Dimension Image</label>
             <input type="file" class="form-control" name="dimension_image" id="dimension_image" accept="image/*">
             <small class="text-muted">Image showing product dimensions (optional)</small>
+          </div>
+          
+          <!-- Finish Images -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Finish Images</h6>
+              <p class="text-muted small mb-0">Upload images for each finish type (Max 5MB per image)</p>
+            </div>
+            <div class="card-body">
+              <div class="row g-4">
+                <?php 
+                $finish_images = [
+                    'sn_image' => ['label' => 'Satin Nickel (SN)'],
+                    'bk_image' => ['label' => 'Black (BK)'],
+                    'an_image' => ['label' => 'Antique Nickel (AN)'],
+                    'gd_image' => ['label' => 'Gold (GD)'],
+                    'rg_image' => ['label' => 'Rose Gold (RG)']
+                ];
+                
+                foreach ($finish_images as $field => $finish): 
+                    $preview_id = $field . 'Preview';
+                ?>
+                <div class="col-md-6 col-lg-4">
+                  <div class="border rounded-2 p-3 h-100">
+                    <label class="form-label small text-muted mb-1"><?= $finish['label'] ?></label>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-image text-muted"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <input type="file" name="<?= $field ?>" id="<?= $field ?>" accept="image/*" class="d-none" onchange="previewImage(this, '<?= $preview_id ?>')">
+                        <label for="<?= $field ?>" class="btn btn-sm btn-outline-secondary w-100">
+                          <i class="bi bi-upload me-1"></i> Upload
+                        </label>
+                      </div>
+                    </div>
+                    <img src="" class="img-fluid rounded-2 mt-2 d-none" style="max-width: 100%; height: auto; max-height: 100px; object-fit: contain;" id="<?= $preview_id ?>">
+                  </div>
+                </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -545,16 +571,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="text-center">
           <button type="submit" class="btn btn-primary">Add Product</button>
-        </div>
       </form>
     </div>
   </div>
 </section>
 
-
-
-
 <script>
+// Image preview functionality
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const preview = document.getElementById(previewId);
+            const container = preview.parentElement;
+            const placeholder = container.querySelector('.bg-light');
+            
+            if (preview) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                
+                if (placeholder) {
+                    placeholder.classList.add('d-none');
+                }
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 document.getElementById('addRow').addEventListener('click', function () {
     let table = document.getElementById('priceTable').getElementsByTagName('tbody')[0];
     let newRow = table.insertRow();

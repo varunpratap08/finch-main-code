@@ -90,8 +90,72 @@ try {
 
   
   <style>
+                /* Modal z-index fix */
+                .modal-backdrop {
+                    z-index: 1040 !important;
+                }
+                .modal {
+                    z-index: 1050 !important;
+                }
+                #finishImageModal {
+                    z-index: 1070 !important;
+                }
+                #buyNowModal {
+                    z-index: 1060 !important;
+                }
+                
+                /* Finish Options Styles */
+                .finish-option {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 5px;
+            border-radius: 4px;
+            width: 80px;
+        }
+        .finish-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .finish-option.active {
+            border: 2px solid #0d6efd;
+        }
+        .finish-option img {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        .finish-option:hover img {
+            border-color: #0d6efd;
+        }
+        .finish-option .finish-label {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        
         .product-details {
             padding: 120px 0;
+        }
+        .finish-option {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .finish-option:hover {
+            transform: scale(1.05);
+        }
+        .finish-option.active {
+            border: 2px solid #0d6efd;
+            border-radius: 4px;
+        }
+        .finish-option img {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
         }
         .product-image img {
             width: 520px;
@@ -137,11 +201,12 @@ try {
             <div id="productCarousel" class="carousel slide carousel-fade mb-4" data-bs-ride="carousel" data-bs-interval="3000">
                 <div class="carousel-inner rounded-3 overflow-hidden shadow-sm" id="carouselContainer">
                     <!-- Main Image -->
-                    <div class="carousel-item active">
-                        <img src="<?php echo htmlspecialchars($product['product_image']); ?>" 
-                             class="d-block w-100" 
-                             alt="<?php echo htmlspecialchars($product['product_name']); ?>">
-                    </div>
+                <div class="carousel-item active">
+                    <img src="<?php echo htmlspecialchars($product['product_image']); ?>" 
+                         class="d-block w-100" 
+                         alt="<?php echo htmlspecialchars($product['product_name']); ?>"
+                         id="mainProductImage">
+                </div>
                     
                     <!-- Additional Image 2 -->
                     <?php if (!empty($product['image2'])): ?>
@@ -243,6 +308,11 @@ try {
             </div>
             
             <style>
+                /* Ensure modals stack properly */
+                .modal-backdrop.show {
+                    opacity: 0.5;
+                }
+                
                 /* Custom carousel styles */
                 #productCarousel {
                     border: 1px solid #f1c40f;
@@ -295,6 +365,37 @@ try {
                     background-color: #f1c40f;
                 }
             </style>
+            
+            <!-- Finish Options -->
+            <div class="finish-options mt-4">
+                <h5 class="mb-3">Available Finishes</h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php 
+                    $finishImages = [
+                        'SN' => $product['sn_image'] ?? '',
+                        'BK' => $product['bk_image'] ?? '',
+                        'AN' => $product['an_image'] ?? '',
+                        'GD' => $product['gd_image'] ?? '',
+                        'RG' => $product['rg_image'] ?? ''
+                    ];
+                    
+                    foreach ($finishImages as $finishCode => $imagePath): 
+                        if (!empty($imagePath)): 
+                    ?>
+                        <div class="finish-option" data-finish="<?php echo $finishCode; ?>" 
+                             data-image="<?php echo htmlspecialchars($imagePath); ?>">
+                            <img src="<?php echo htmlspecialchars($imagePath); ?>" 
+                                 alt="<?php echo $finishCode; ?> Finish"
+                                 class="img-thumbnail"
+                                 style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;">
+                            <div class="finish-label"><?php echo $finishCode; ?></div>
+                        </div>
+                    <?php 
+                        endif;
+                    endforeach; 
+                    ?>
+                </div>
+            </div>
         </div>
         
         <!-- Product Details -->
@@ -458,8 +559,55 @@ try {
                     </div>
                     <div class="col-md-4">
                         <label for="mainQuantity" class="form-label fw-bold">Quantity</label>
-                        <input type="number" id="mainQuantity" class="form-control form-control-lg" value="1" min="1">
+                        <div class="input-group product-quantity" style="height: 38px;">
+                            <button type="button" class="btn btn-outline-secondary quantity-btn product-quantity-decrease">-</button>
+                            <input type="number" id="mainQuantity" class="form-control text-center product-quantity-input" value="1" min="1" style="height: 38px; padding: 0.375rem 0.5rem;">
+                            <button type="button" class="btn btn-outline-secondary quantity-btn product-quantity-increase">+</button>
+                        </div>
                     </div>
+                    <style>
+                        .quantity-btn {
+                            width: 38px;
+                            height: 38px;
+                            padding: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .product-quantity-input {
+                            -moz-appearance: textfield;
+                            max-width: 60px;
+                            text-align: center;
+                        }
+                        .product-quantity-input::-webkit-outer-spin-button,
+                        .product-quantity-input::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+                    </style>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Handle quantity increase
+                        document.querySelectorAll('.product-quantity-increase').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const input = this.closest('.product-quantity').querySelector('.product-quantity-input');
+                                if (input) input.stepUp();
+                            });
+                        });
+
+                        // Handle quantity decrease
+                        document.querySelectorAll('.product-quantity-decrease').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const input = this.closest('.product-quantity').querySelector('.product-quantity-input');
+                                if (input && input.value > 1) {
+                                    input.stepDown();
+                                }
+                            });
+                        });
+                    });
+                    </script>
                 </div>
                 
                 <!-- Price display removed as requested -->
@@ -512,6 +660,7 @@ try {
             <div class="modal-body">
                 <form id="buyNowForm" action="inc/order_api.php" method="POST">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                    <input type="hidden" name="finish_image" id="buyNowFinishImage">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
                         <input type="text" class="form-control" name="customer_name" required>
@@ -779,21 +928,88 @@ function showToast(message) {
 }
 
 // Add to Cart functionality
+// Handle finish image selection
+document.addEventListener('DOMContentLoaded', function() {
+    const finishOptions = document.querySelectorAll('.finish-option');
+    const finishTitle = document.getElementById('finishTitle');
+    const modalFinishImage = document.getElementById('modalFinishImage');
+    
+    finishOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const finishImage = this.getAttribute('data-image');
+            const finishCode = this.getAttribute('data-finish');
+            
+            console.log('Finish option clicked:', { finishImage, finishCode });
+            
+            // Update modal content
+            if (finishTitle) {
+                finishTitle.textContent = finishCode || 'Finish Preview';
+            }
+            
+            if (modalFinishImage) {
+                // Ensure we have a valid image path
+                let imagePath = finishImage || '';
+                // Remove any leading slashes or dots from the path
+                imagePath = imagePath.replace(/^[.\/]+/, '');
+                modalFinishImage.src = imagePath;
+                
+                // Add error handling for the image
+                modalFinishImage.onerror = function() {
+                    console.error('Failed to load finish image:', imagePath);
+                    this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f8f9fa%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%236c757d%22%3EImage%20not%20found%3C%2Ftext%3E%3C%2Fsvg%3E';
+                };
+            }
+            
+            // Show the modal using Bootstrap's modal method
+            const modalElement = document.getElementById('finishImageModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modal.show();
+            } else {
+                console.error('Finish image modal element not found');
+            }
+        });
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     // Main product selection functionality
     const mainSizeSelect = document.getElementById('mainSizeSelect');
     const mainFinishSelect = document.getElementById('mainFinishSelect');
     const mainQuantityInput = document.getElementById('mainQuantity');
+    const finishOptions = document.querySelectorAll('.finish-option');
+    const selectedFinishImage = document.getElementById('selectedFinishImage');
     
-    // Simple product selection logic - no disabling of options
+    // Handle finish selection
+    finishOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            finishOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Add active class to selected option
+            this.classList.add('active');
+            
+            // Update the finish select dropdown
+            const finish = this.getAttribute('data-finish');
+            mainFinishSelect.value = finish;
+            
+            // Save the finish image path
+            const imagePath = this.getAttribute('data-image');
+            selectedFinishImage.value = imagePath;
+            
+            console.log('Selected finish:', finish, 'Image:', imagePath);
+        });
+    });
+    
+    // Handle size selection
     mainSizeSelect.addEventListener('change', function() {
         console.log('Size selected:', this.value);
     });
     
-    mainFinishSelect.addEventListener('change', function() {
-        console.log('Finish selected:', this.value);
-    });
-    
+    // Handle quantity change
     mainQuantityInput.addEventListener('input', function() {
         console.log('Quantity updated:', this.value);
     });
@@ -804,11 +1020,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (buyNowBtn) {
         buyNowBtn.addEventListener('click', function() {
+            // Check if a finish is selected
+            const selectedFinish = document.querySelector('.finish-option.active');
+            if (!selectedFinish) {
+                alert('Please select a finish first');
+                return;
+            }
+            
             // Prefill modal form with main selection
             const form = document.getElementById('buyNowForm');
             const modalSizeSelect = form.querySelector('select[name="sizes[]"]');
             const modalFinishSelect = form.querySelector('select[name="finishes[]"]');
             const modalQuantityInput = form.querySelector('input[name="quantities[]"]');
+            const buyNowFinishImage = document.getElementById('buyNowFinishImage');
+            
+            // Set the finish image from the selected finish
+            const finishImage = selectedFinish.getAttribute('data-image');
+            if (finishImage) {
+                // Store the relative path (remove any leading slashes or dots)
+                const relativePath = finishImage.replace(/^[.\/]+/, '');
+                buyNowFinishImage.value = relativePath;
+                console.log('Setting finish image:', relativePath);
+            }
 
             // Set the values from the main dropdowns if available
             if (mainSizeSelect && modalSizeSelect) {
@@ -935,8 +1168,80 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize cart UI
     updateCartUI();
+    
+    // Initialize finish image modal
+    const finishImageModalElement = document.getElementById('finishImageModal');
+    if (finishImageModalElement) {
+        window.finishImageModal = new bootstrap.Modal(finishImageModalElement);
+    }
 });
 </script>
+
+<!-- Finish Image Modal -->
+<div class="modal fade" id="finishImageModal" tabindex="-1" aria-labelledby="finishImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px; width: auto;">
+        <div class="modal-content">
+            <div class="modal-header py-1 px-3 bg-light">
+                <h6 class="modal-title mb-0 small fw-bold" id="finishImageModalLabel">Finish: <span id="finishTitle"></span></h6>
+                <button type="button" class="btn-close btn-close-sm m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-2 d-flex justify-content-center align-items-center" style="min-height: 200px; max-height: 400px;">
+                <img id="modalFinishImage" src="" alt="Finish Image" class="img-fluid shadow-sm" style="max-height: 350px; max-width: 100%; width: auto; object-fit: contain;">
+            </div>
+            <div class="modal-footer py-1 px-2 bg-light">
+                <small class="text-muted small d-block text-center w-100">Click outside to close</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal styling */
+#finishImageModal .modal-dialog {
+    margin: 1rem auto;
+    max-width: 90%;
+}
+
+#finishImageModal .modal-content {
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#finishImageModal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.5rem 0.75rem;
+}
+
+#finishImageModal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 0.25rem 0.5rem;
+}
+
+#finishImageModal .btn-close {
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    background-size: 0.7em;
+}
+
+/* Make sure the modal is properly sized on mobile */
+@media (max-width: 576px) {
+    #finishImageModal .modal-dialog {
+        margin: 0.5rem auto;
+        max-width: 95%;
+    }
+    
+    #finishImageModal .modal-body {
+        min-height: 150px;
+        max-height: 60vh;
+    }
+    
+    #finishImageModal img {
+        max-height: 55vh;
+    }
+}
+</style>
 
 </body>
 

@@ -240,6 +240,11 @@ try {
                     // Group orders by customer and timestamp
                     $grouped_orders = [];
                     foreach ($orders as $order) {
+                        // Skip if order_details is empty
+                        if (empty($order['order_details'])) {
+                            continue;
+                        }
+                        
                         // Decode the order details
                         $order_details = json_decode($order['order_details'], true);
                         
@@ -253,9 +258,14 @@ try {
                             $order_details = [];
                         }
                         
-                        // If order_details is not already a list of items, wrap it in an array
-                        if (isset($order_details['product_id'])) {
-                            $order_details = [$order_details];
+                        // Handle the new structure where items are in 'items' key
+                        if (isset($order_details['items']) && is_array($order_details['items'])) {
+                            $items = $order_details['items'];
+                            $finish_image = $order_details['finish_image'] ?? '';
+                        } else {
+                            // Handle old structure where items are directly in the array
+                            $items = isset($order_details[0]) ? $order_details : [$order_details];
+                            $finish_image = '';
                         }
                         
                         $order_key = $order['customer_email'] . '_' . strtotime($order['created_at']);
@@ -274,7 +284,7 @@ try {
                         }
                         
                         // Process each item in the order details
-                        foreach ($order_details as $item) {
+                        foreach ($items as $item) {
                             if (!is_array($item)) {
                                 continue; // Skip invalid items
                             }
@@ -283,25 +293,49 @@ try {
                             $product_id = $item['id'] ?? $item['product_id'] ?? 'unknown_' . uniqid();
                             $product_name = $item['name'] ?? 'Product ' . $product_id;
                             
-                            $grouped_orders[$order_key]['items'][] = [
+                            $item_data = [
                                 'product_id' => $product_id,
                                 'name' => $product_name,
                                 'image' => $item['image'] ?? '',
                                 'size' => $item['size'] ?? '',
-                                'finish' => $item['finish'] ?? '',
+                                'finish' => $item['finish'] ?? $item['finish_display'] ?? '',
+                                'finish_image' => $item['finish_image'] ?? $finish_image,
                                 'quantity' => isset($item['quantity']) ? (int)$item['quantity'] : (isset($item['qty']) ? (int)$item['qty'] : 1),
                                 'price' => isset($item['price']) ? (float)$item['price'] : 0,
+                                'price_per_unit' => $item['price_per_unit'] ?? 0,
                                 'subtotal' => isset($item['subtotal']) ? (float)$item['subtotal'] : 0
                             ];
                             
-                            $grouped_orders[$order_key]['total_price'] += $item['subtotal'] ?? $order['total_price'] ?? 0;
+                            $grouped_orders[$order_key]['items'][] = $item_data;
+                            $grouped_orders[$order_key]['total_price'] += $item_data['subtotal'] ?? $order['total_price'] ?? 0;
                         }
                     }
                     ?>
                     
                     <?php if (!empty($grouped_orders)): ?>
                         <?php foreach ($grouped_orders as $order_key => $order): 
-                            $first_item = $order['items'][0] ?? [];
+                            // Initialize order details array
+                            $order_details = [];
+                            
+                            // Decode order details if it's a JSON string
+                            if (!empty($order['order_details']) && is_string($order['order_details'])) {
+                                $decoded_details = json_decode($order['order_details'], true);
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    $order_details = $decoded_details;
+                                    $order = array_merge($order, $order_details);
+                                }
+                            }
+                            
+                            // Get first item and its details
+                            $first_item = [];
+                            if (!empty($order['items']) && is_array($order['items'])) {
+                                $first_item = $order['items'][0] ?? [];
+                                // If finish_image is at the order level, copy it to the first item
+                                if (!empty($order['finish_image']) && empty($first_item['finish_image'])) {
+                                    $first_item['finish_image'] = $order['finish_image'];
+                                }
+                            }
+                            
                             $image_path = '';
                             
                             // Initialize image path
@@ -352,17 +386,37 @@ try {
                                 <div class="row">
                                     <div class="col-md-8">
                                         <div class="d-flex align-items-start mb-3">
-                                            <div class="product-image-container me-3" style="width: 120px; height: 120px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
-                                                <?php if (!empty($image_path)): ?>
-                                                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
-                                                         alt="<?php echo htmlspecialchars($first_item['name'] ?? 'Product Image'); ?>" 
-                                                         class="img-fluid" 
-                                                         style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                                                         onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23e9ecef%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%236c757d%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
-                                                <?php else: ?>
-                                                    <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="width: 100%; height: 100%;">
-                                                        <i class="bi bi-image" style="font-size: 2rem;"></i>
-                                                        <small>No Image</small>
+                                            <div class="d-flex" style="gap: 10px;">
+                                                <!-- Main product image -->
+                                                <div class="product-image-container me-3" style="width: 120px; height: 120px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
+                                                    <?php if (!empty($image_path)): ?>
+                                                        <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                                             alt="<?php echo htmlspecialchars($first_item['name'] ?? 'Product Image'); ?>" 
+                                                             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                    <?php else: ?>
+                                                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                                                    <?php endif; ?>
+                                                </div>
+                                                
+                                                <!-- Finish image if available -->
+                                                <?php 
+                                                $finish_image = $first_item['finish_image'] ?? '';
+                                                if (!empty($finish_image)): 
+                                                    $finish_image_path = findImageFile($finish_image);
+                                                    // If the image doesn't exist locally, try to use it as a direct URL
+                                                    if (!file_exists($finish_image_path) && strpos($finish_image, 'http') === 0) {
+                                                        $finish_image_path = $finish_image;
+                                                    }
+                                                ?>
+                                                    <div class="finish-image-container" style="width: 80px; height: 120px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px; padding: 5px; border: 1px solid #dee2e6;">
+                                                        <small class="text-muted mb-1">Finish</small>
+                                                        <img src="<?php echo htmlspecialchars($finish_image_path); ?>" 
+                                                             alt="Finish: <?php echo htmlspecialchars($first_item['finish'] ?? ''); ?>" 
+                                                             style="max-width: 100%; max-height: 80%; object-fit: contain;"
+                                                             onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%23e9ecef%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2212%22%20text-anchor%3D%22middle%22%20alignment-baseline%3D%22middle%22%20fill%3D%22%236c757d%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
+                                                        <small class="text-muted mt-1 text-truncate" style="max-width: 70px;" title="<?php echo htmlspecialchars($first_item['finish'] ?? ''); ?>">
+                                                            <?php echo htmlspecialchars($first_item['finish'] ?? ''); ?>
+                                                        </small>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>

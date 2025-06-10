@@ -481,6 +481,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$image3, $_GET['id']]);
         }
     }
+    
+    // Update finish images if provided
+    $finish_image_fields = [
+        'sn_image' => 'SN',
+        'bk_image' => 'BK',
+        'an_image' => 'AN',
+        'gd_image' => 'GD',
+        'rg_image' => 'RG'
+    ];
+    
+    foreach ($finish_image_fields as $field => $finish_code) {
+        if (!empty($_FILES[$field]['name'])) {
+            $finish_image = uploadImage($_FILES[$field], $target_dir, strtolower($finish_code) . '_finish_');
+            if ($finish_image) {
+                $stmt = $pdo->prepare("UPDATE products SET $field = ? WHERE id = ?");
+                $stmt->execute([$finish_image, $_GET['id']]);
+            }
+        }
+    }
 
     // Handle selected finishes
     $finish_ids = isset($_POST['finishes']) && is_array($_POST['finishes']) ? 
@@ -788,6 +807,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+                  <!-- Finish Images -->
+          <div class="col-12">
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Finish Images</h6>
+                <p class="text-muted small mb-0">Upload images for each finish type (Max 5MB per image)</p>
+              </div>
+              <div class="card-body">
+                <div class="row g-4">
+                  <?php 
+                  $finish_images = [
+                      'sn_image' => ['label' => 'Satin Nickel (SN)', 'current' => $product['sn_image'] ?? ''],
+                      'bk_image' => ['label' => 'Black (BK)', 'current' => $product['bk_image'] ?? ''],
+                      'an_image' => ['label' => 'Antique Nickel (AN)', 'current' => $product['an_image'] ?? ''],
+                      'gd_image' => ['label' => 'Gold (GD)', 'current' => $product['gd_image'] ?? ''],
+                      'rg_image' => ['label' => 'Rose Gold (RG)', 'current' => $product['rg_image'] ?? '']
+                  ];
+                  
+                  foreach ($finish_images as $field => $finish): 
+                      $preview_id = $field . 'Preview';
+                  ?>
+                  <div class="col-md-6 col-lg-4">
+                    <div class="border rounded-2 p-3 h-100">
+                      <label class="form-label small text-muted mb-1"><?= $finish['label'] ?></label>
+                      <div class="d-flex align-items-center gap-3">
+                        <?php if (!empty($finish['current'])): ?>
+                          <img src="../../<?= ltrim($finish['current'], '/') ?>" class="img-fluid rounded-2" style="width: 60px; height: 60px; object-fit: cover;" id="<?= $preview_id ?>">
+                        <?php else: ?>
+                          <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-image text-muted"></i>
+                          </div>
+                        <?php endif; ?>
+                        <div class="flex-grow-1">
+                          <input type="file" name="<?= $field ?>" id="<?= $field ?>" accept="image/*" class="d-none" onchange="previewImage(this, '<?= $preview_id ?>')">
+                          <label for="<?= $field ?>" class="btn btn-sm btn-outline-secondary w-100">
+                            <i class="bi bi-upload me-1"></i> Upload
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
             </div>

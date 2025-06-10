@@ -338,6 +338,10 @@ function updateCartUI() {
     const subtotalElement = document.getElementById('subtotal');
     const totalElement = document.getElementById('total');
     const checkoutBtn = document.getElementById('checkoutBtn');
+    let continueShoppingBtn = document.querySelector('.continue-shopping-btn');
+
+    // Clear the container first
+    cartItemsContainer.innerHTML = '';
 
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = `
@@ -351,14 +355,25 @@ function updateCartUI() {
                     <i class="bi bi-arrow-left"></i> Continue Shopping
                 </a>
             </div>`;
+        
+        // Remove any existing continue shopping button
+        if (continueShoppingBtn) {
+            continueShoppingBtn.remove();
+        }
+        
         subtotalElement.textContent = '₹0.00';
         totalElement.textContent = '₹0.00';
-        checkoutBtn.disabled = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
+        
+        // Update the cart count in the header
+        if (window.cartFunctions && typeof window.cartFunctions.updateCartUI === 'function') {
+            window.cartFunctions.updateCartUI();
+        }
         return;
     }
 
     let subtotal = 0;
-    cartItemsContainer.innerHTML = cart.map((item, idx) => {
+    const cartItemsHTML = cart.map((item, idx) => {
         const quantity = item.qty || item.quantity || 1;
         const itemTotal = item.price * quantity;
         subtotal += itemTotal;
@@ -370,44 +385,92 @@ function updateCartUI() {
                     <h3 class="cart-item-title">${item.name}</h3>
                     <p class="cart-item-price">₹${parseFloat(item.price).toFixed(2)}</p>
                     <div class="quantity-selector">
-                        <button type="button" class="quantity-btn minus" onclick="updateQuantity(${idx}, -1)">-</button>
+                        <button type="button" class="quantity-btn minus" data-action="decrease" data-index="${idx}">-</button>
                         <input type="number" class="quantity-input" 
                                value="${quantity}" 
                                min="1" 
-                               onchange="updateQuantityInput(${idx}, this.value)">
-                        <button type="button" class="quantity-btn plus" onclick="updateQuantity(${idx}, 1)">+</button>
+                               data-index="${idx}">
+                        <button type="button" class="quantity-btn plus" data-action="increase" data-index="${idx}">+</button>
                     </div>
                     <p class="cart-item-subtotal">Subtotal: ₹${itemTotal.toFixed(2)}</p>
                 </div>
-                <button class="remove-btn" onclick="removeFromCart(${idx})" title="Remove item">
+                <button class="remove-btn" data-action="remove" data-index="${idx}" title="Remove item">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>`;
     }).join('');
 
-    subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
-    totalElement.textContent = `₹${subtotal.toFixed(2)}`; // In a real app, you'd add shipping and tax here
-    checkoutBtn.disabled = false;
+    cartItemsContainer.innerHTML = cartItemsHTML;
     
-    // Add "Continue Shopping" button when cart has items
-    const continueShoppingBtn = document.createElement('div');
-    continueShoppingBtn.className = 'text-end mt-4';
-    continueShoppingBtn.innerHTML = `
-        <a href="products.php" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Continue Shopping
-        </a>
-    `;
-    cartItemsContainer.after(continueShoppingBtn);
+    if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    if (totalElement) totalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    if (checkoutBtn) checkoutBtn.disabled = false;
+    
+    // Add or update "Continue Shopping" button
+    if (!continueShoppingBtn) {
+        continueShoppingBtn = document.createElement('div');
+        continueShoppingBtn.className = 'text-end mt-4 continue-shopping-btn';
+        continueShoppingBtn.innerHTML = `
+            <a href="products.php" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Continue Shopping
+            </a>
+        `;
+        cartItemsContainer.after(continueShoppingBtn);
+    }
     
     // Update the cart count in the header
-    window.cartFunctions.updateCartUI();
+    if (window.cartFunctions && typeof window.cartFunctions.updateCartUI === 'function') {
+        window.cartFunctions.updateCartUI();
+    }
 }
 
-// Initialize cart UI when page loads
+// Handle cart actions with event delegation
+function handleCartAction(e) {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.getAttribute('data-action');
+    const index = parseInt(target.getAttribute('data-index'));
+    const cart = getCart();
+    
+    if (isNaN(index) || index < 0 || index >= cart.length) return;
+
+    switch (action) {
+        case 'increase':
+            updateQuantity(index, 1);
+            break;
+        case 'decrease':
+            updateQuantity(index, -1);
+            break;
+        case 'remove':
+            removeFromCart(index);
+            break;
+    }
+}
+
+// Handle quantity input changes
+function handleQuantityInput(e) {
+    if (!e.target.classList.contains('quantity-input')) return;
+    
+    const index = parseInt(e.target.getAttribute('data-index'));
+    const value = parseInt(e.target.value) || 1;
+    
+    if (!isNaN(index) && index >= 0) {
+        updateQuantityInput(index, value);
+    }
+}
+
+// Initialize cart UI and event listeners when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, checking cart...');
     console.log('Raw localStorage cart:', localStorage.getItem('cart'));
     console.log('Parsed cart:', JSON.parse(localStorage.getItem('cart') || '[]'));
+    
+    // Add event listeners
+    document.addEventListener('click', handleCartAction);
+    document.addEventListener('change', handleQuantityInput);
+    
+    // Initialize cart UI
     updateCartUI();
 });
 
@@ -709,10 +772,13 @@ function initializeModal() {
                         if (modal) modal.hide();
                     }
                     
-                    // Redirect to thank you page or home after a delay
-                    setTimeout(() => {
-                        window.location.href = 'thank-you.php';
-                    }, 2000);
+                    // Redirect to thank you page with order ID
+                    if (data.data && data.data.redirect) {
+                        window.location.href = data.data.redirect;
+                    } else {
+                        // Fallback to default thank you page
+                        window.location.href = 'thank-you.php' + (data.data && data.data.order_id ? '?order_id=' + data.data.order_id : '');
+                    }
                 } else {
                     throw new Error(data.message || 'Failed to place order');
                 }
@@ -742,9 +808,9 @@ function initializeModal() {
 
 // Handle checkout button click
 function proceedToCheckout() {
-    const cart = getCart();
-    if (cart.length === 0) {
-        showToast('Your cart is empty. Please add some products before checkout.');
+    const selectedItems = getSelectedCartItems();
+    if (selectedItems.length === 0) {
+        alert('Please select at least one item to proceed to checkout.');
         return;
     }
     

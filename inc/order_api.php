@@ -102,8 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $order_items[] = [
                 'size' => $size,
-                'finish' => $finish_display, // Use the display name for admin panel
-                'finish_code' => $finish, // Keep the code for reference
+                'finish' => $finish_display,
+                'finish_code' => $finish_code,
+                'finish_image' => $_POST['finish_image'] ?? '',
                 'quantity' => $quantity,
                 'price_per_unit' => $price_per_unit,
                 'subtotal' => $subtotal
@@ -115,9 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Prepare order data with finish image
+        $order_data = [
+            'items' => $order_items,
+            'finish_image' => $_POST['finish_image'] ?? ''
+        ];
+        
         // Encode order details in JSON format
-        $order_json = json_encode($order_items);
-
+        $order_details = json_encode($order_data);
+        
         // Insert data into orders table
         $stmt = $pdo->prepare("INSERT INTO orders 
             (product_id, customer_name, customer_email, customer_phone, customer_address, order_details, total_price) 
@@ -129,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':customer_email' => $customer_email,
             ':customer_phone' => $customer_phone,
             ':customer_address' => $customer_address,
-            ':order_details' => $order_json,
+            ':order_details' => $order_details, // Use the complete order data with finish image
             ':total_price' => $total_price
         ]);
 

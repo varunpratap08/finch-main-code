@@ -210,7 +210,11 @@ section {
     border-radius: 6px;
     cursor: pointer;
     flex-grow: 1;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
 /* Hover Effects */
@@ -219,14 +223,25 @@ section {
 }
 
 .add-to-cart:hover {
-    background: #f1f1f1;
+    background: #f8f9fa;
+    color: #DEB462;
 }
 
-/* Added to cart state */
+/* Added state for add to cart button */
 .add-to-cart.added {
     background-color: #28a745 !important;
     border-color: #28a745 !important;
     color: white !important;
+    cursor: default;
+}
+
+.add-to-cart:disabled {
+    opacity: 1 !important;
+    cursor: not-allowed;
+}
+
+.add-to-cart i {
+    font-size: 1rem;
 }
 
 /* Notification toast */
@@ -495,6 +510,33 @@ function showToast(message) {
     }, 3000);
 }
 
+// Check if product is in cart
+function isProductInCart(productId) {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    return cart.some(item => item.id === productId);
+}
+
+// Update add to cart button state
+function updateAddToCartButton(button) {
+    const productId = button.getAttribute('data-id');
+    if (isProductInCart(productId)) {
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-check-lg me-1"></i> Added';
+        button.classList.add('added');
+    } else {
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-cart-plus me-1"></i> Add to Cart';
+        button.classList.remove('added');
+    }
+}
+
+// Update all add to cart buttons on the page
+function updateAllAddToCartButtons() {
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        updateAddToCartButton(button);
+    });
+}
+
 // Handle add to cart button click
 function handleAddToCart(button) {
     // Make sure cart functions are available
@@ -521,25 +563,11 @@ function handleAddToCart(button) {
             qty: 1
         });
         
-        // Verify item was added
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        console.log('Current cart after add:', cart);
-        
         // Update button state
-        button.disabled = true;
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="bi bi-check-lg me-1"></i> Added';
-        button.classList.add('added');
+        updateAddToCartButton(button);
         
         // Show success message
         showToast(`${productName} added to cart`);
-        
-        // Reset button after 2 seconds
-        setTimeout(() => {
-            button.disabled = false;
-            button.innerHTML = originalHTML;
-            button.classList.remove('added');
-        }, 2000);
     } catch (error) {
         console.error('Error adding to cart:', error);
         showToast('Error adding item to cart. Please try again.');
@@ -548,6 +576,9 @@ function handleAddToCart(button) {
 
 // Initialize event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize button states on page load
+    updateAllAddToCartButtons();
+    
     // Delegate click event for add to cart buttons
     document.addEventListener('click', function(e) {
         const addToCartBtn = e.target.closest('.add-to-cart');
@@ -557,7 +588,24 @@ document.addEventListener('DOMContentLoaded', function() {
             return false; // Prevent any other handlers
         }
     });
+    
+    // Listen for cart updates
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'cart') {
+            updateAllAddToCartButtons();
+        }
+    });
 });
+
+// Override the fetchsubcateproducts function to update buttons after AJAX load
+const originalFetchSubcateProducts = window.fetchsubcateproducts;
+window.fetchsubcateproducts = function(subcategoryName, element) {
+    return originalFetchSubcateProducts.call(this, subcategoryName, element)
+        .then(() => {
+            // Update button states after products are loaded
+            setTimeout(updateAllAddToCartButtons, 100);
+        });
+};
 </script>
 
 </body>
