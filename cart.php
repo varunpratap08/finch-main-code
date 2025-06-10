@@ -374,12 +374,9 @@ function updateCartUI() {
 
     let subtotal = 0;
     const cartItemsHTML = cart.map((item, idx) => {
-        const quantity = item.qty || item.quantity || 1;
-        const itemTotal = item.price * quantity;
-        subtotal += itemTotal;
-        
         return `
             <div class="cart-item" data-index="${idx}">
+                <input type="checkbox" class="item-checkbox" data-index="${idx}" checked style="margin-right: 10px; width: 18px; height: 18px;">
                 <img src="${item.image || 'assets/img/placeholder-product.jpg'}" alt="${item.name}" class="cart-item-img">
                 <div class="cart-item-details">
                     <h3 class="cart-item-title">${item.name}</h3>
@@ -387,12 +384,12 @@ function updateCartUI() {
                     <div class="quantity-selector">
                         <button type="button" class="quantity-btn minus" data-action="decrease" data-index="${idx}">-</button>
                         <input type="number" class="quantity-input" 
-                               value="${quantity}" 
+                               value="${item.qty || item.quantity || 1}" 
                                min="1" 
                                data-index="${idx}">
                         <button type="button" class="quantity-btn plus" data-action="increase" data-index="${idx}">+</button>
                     </div>
-                    <p class="cart-item-subtotal">Subtotal: ₹${itemTotal.toFixed(2)}</p>
+                    <p class="cart-item-subtotal">Subtotal: ₹${(item.price * (item.qty || item.quantity || 1)).toFixed(2)}</p>
                 </div>
                 <button class="remove-btn" data-action="remove" data-index="${idx}" title="Remove item">
                     <i class="bi bi-trash"></i>
@@ -515,45 +512,33 @@ function updateCheckoutModal() {
             clone.querySelector('img').alt = item.name;
         }
         
-        // Set selected size and finish if available
-        if (item.size) {
-            const sizeSelect = clone.querySelector('.item-size');
-            if (sizeSelect) {
-                for (let i = 0; i < sizeSelect.options.length; i++) {
-                    if (sizeSelect.options[i].value === item.size) {
-                        sizeSelect.selectedIndex = i;
-                        break;
-                    }
+        // Populate size dropdown from item.sizes (admin-provided)
+        const sizeSelect = clone.querySelector('.item-size');
+        if (sizeSelect && Array.isArray(item.sizes)) {
+            // Remove all options except the first (placeholder)
+            while (sizeSelect.options.length > 1) sizeSelect.remove(1);
+            item.sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                if (item.size && item.size === size) option.selected = true;
+                sizeSelect.appendChild(option);
+            });
+        }
+        // Set selected size if available (for fallback if not in sizes array)
+        if (item.size && sizeSelect) {
+            for (let i = 0; i < sizeSelect.options.length; i++) {
+                if (sizeSelect.options[i].value === item.size) {
+                    sizeSelect.selectedIndex = i;
+                    break;
                 }
             }
         }
-        
         if (item.finish) {
             const finishSelect = clone.querySelector('.item-finish');
             if (finishSelect) {
-                for (let i = 0; i < finishSelect.options.length; i++) {
-                    if (finishSelect.options[i].value === item.finish) {
-                        finishSelect.selectedIndex = i;
-                        break;
-                    }
-                }
+                finishSelect.value = item.finish;
             }
-        }
-        
-        // Add event listeners for size and finish changes
-        const sizeSelect = clone.querySelector('.item-size');
-        const finishSelect = clone.querySelector('.item-finish');
-        
-        if (sizeSelect) {
-            sizeSelect.addEventListener('change', function() {
-                updateFinishOptions(this);
-            });
-        }
-        
-        if (finishSelect) {
-            finishSelect.addEventListener('change', function() {
-                updateTotalPrice();
-            });
         }
         
         cartItemsList.appendChild(clone);
@@ -563,45 +548,6 @@ function updateCheckoutModal() {
     // Update total price
     totalPriceElement.textContent = total.toFixed(2);
     totalPriceInput.value = total.toFixed(2);
-    
-    // Initialize size options with pricing data if available
-    initializeSizeOptions();
-}
-
-// Function to initialize size options with pricing data
-function initializeSizeOptions() {
-    // This function would typically fetch size and pricing data from your server
-    // For now, we'll use a simplified example
-    const sizeOptions = {
-        'Standard': { sn: 100, bk: 110, an: 120, gd: 130, rg: 140, ch: 150, gl: 160 },
-        'Small': { sn: 80, bk: 90, an: 100, gd: 110, rg: 120, ch: 130, gl: 140 },
-        'Medium': { sn: 100, bk: 110, an: 120, gd: 130, rg: 140, ch: 150, gl: 160 },
-        'Large': { sn: 150, bk: 160, an: 170, gd: 180, rg: 190, ch: 200, gl: 210 },
-        'XL': { sn: 200, bk: 210, an: 220, gd: 230, rg: 240, ch: 250, gl: 260 },
-        'Custom': { sn: 250, bk: 260, an: 270, gd: 280, rg: 290, ch: 300, gl: 310 }
-    };
-    
-    // Populate size options with data attributes for pricing
-    document.querySelectorAll('.item-size').forEach(select => {
-        // Clear existing options except the first one
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-        
-        // Add size options with pricing data
-        Object.entries(sizeOptions).forEach(([size, prices]) => {
-            const option = document.createElement('option');
-            option.value = size;
-            option.textContent = size;
-            
-            // Add data attributes for each finish price
-            Object.entries(prices).forEach(([finish, price]) => {
-                option.dataset[finish] = price;
-            });
-            
-            select.appendChild(option);
-        });
-    });
 }
 
 // Initialize when DOM is loaded
@@ -799,11 +745,77 @@ function initializeModal() {
 // Get selected cart items (checkboxes)
 function getSelectedCartItems() {
     const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+    const cart = getCart();
     return Array.from(checkboxes).map(checkbox => {
         const index = parseInt(checkbox.getAttribute('data-index'));
-        const cart = getCart();
         return cart[index];
     }).filter(Boolean);
+}
+
+// Update checkout modal with only selected items
+function updateCheckoutModal() {
+    const selectedItems = getSelectedCartItems();
+    const cartItemsList = document.getElementById('checkoutItemsList');
+    const totalPriceElement = document.getElementById('totalPrice');
+    const totalPriceInput = document.getElementById('totalPriceInput');
+    if (!cartItemsList || !totalPriceElement || !totalPriceInput) return;
+    // Clear the cart items list
+    cartItemsList.innerHTML = '';
+    
+    if (selectedItems.length === 0) {
+        cartItemsList.innerHTML = '<div class="alert alert-info">No products selected for checkout.</div>';
+        totalPriceElement.textContent = '0.00';
+        totalPriceInput.value = '0.00';
+        return;
+    }
+    
+    let total = 0;
+    const template = document.getElementById('cartItemTemplate');
+    selectedItems.forEach((item, index) => {
+        const clone = template.content.cloneNode(true);
+        clone.querySelector('.product-name').textContent = item.name;
+        clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
+        clone.querySelector('.product-quantity').textContent = item.qty;
+        clone.querySelector('.product-id').value = item.id;
+        clone.querySelector('.product-quantity-input').value = item.qty;
+        clone.querySelector('.product-price-input').value = item.price;
+        if (item.image) {
+            clone.querySelector('img').src = item.image;
+            clone.querySelector('img').alt = item.name;
+        }
+        // Populate size dropdown from item.sizes (admin-provided)
+        const sizeSelect = clone.querySelector('.item-size');
+        if (sizeSelect && Array.isArray(item.sizes)) {
+            // Remove all options except the first (placeholder)
+            while (sizeSelect.options.length > 1) sizeSelect.remove(1);
+            item.sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                if (item.size && item.size === size) option.selected = true;
+                sizeSelect.appendChild(option);
+            });
+        }
+        // Set selected size if available (for fallback if not in sizes array)
+        if (item.size && sizeSelect) {
+            for (let i = 0; i < sizeSelect.options.length; i++) {
+                if (sizeSelect.options[i].value === item.size) {
+                    sizeSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        if (item.finish) {
+            const finishSelect = clone.querySelector('.item-finish');
+            if (finishSelect) {
+                finishSelect.value = item.finish;
+            }
+        }
+        cartItemsList.appendChild(clone);
+        total += item.price * item.qty;
+    });
+    totalPriceElement.textContent = total.toFixed(2);
+    totalPriceInput.value = total.toFixed(2);
 }
 
 // Update order summary in the modal
@@ -850,26 +862,21 @@ function updateOrderSummary() {
 
 // Handle checkout button click
 function proceedToCheckout() {
-    const cart = getCart();
-    if (cart.length === 0) {
-        showToast('Your cart is empty. Please add some products before checkout.');
+    const selectedItems = getSelectedCartItems();
+    if (selectedItems.length === 0) {
+        showToast('Please select at least one product to checkout.');
         return;
     }
-    
     const checkoutModalElement = document.getElementById('checkoutModal');
     if (!checkoutModalElement) return;
-    
     // Update order summary before showing the modal
-    updateOrderSummary();
-    
+    updateCheckoutModal(); // This will now use only selected items
     // Initialize and show the modal
     const checkoutModal = new bootstrap.Modal(checkoutModalElement, {
         backdrop: 'static',
         keyboard: false
     });
-    
     checkoutModal.show();
-    
     // Set focus to the first input when modal is shown
     checkoutModalElement.addEventListener('shown.bs.modal', function() {
         const firstInput = checkoutModalElement.querySelector('input, textarea, select');
@@ -960,17 +967,21 @@ if (checkoutForm) {
         const formData = new FormData(this);
         const cart = getCart();
         
-        // Add cart items to form data with size and finish
-        document.querySelectorAll('.cart-item-details').forEach((item, index) => {
-            const productId = document.querySelectorAll('.product-id')[index].value;
-            const quantity = document.querySelectorAll('.product-quantity-input')[index].value;
-            const size = document.querySelectorAll('.item-size')[index].value;
-            const finish = document.querySelectorAll('.item-finish')[index].value;
-            
-            formData.append(`items[${index}][product_id]`, productId);
-            formData.append(`items[${index}][quantity]`, quantity);
-            formData.append(`items[${index}][size]`, size);
-            formData.append(`items[${index}][finish]`, finish);
+        // In the checkout form submission handler, use only selected items
+        const selectedItems = getSelectedCartItems();
+        if (selectedItems.length === 0) {
+            showToast('Please select at least one product to checkout.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            return;
+        }
+        // Add selected cart items to form data
+        selectedItems.forEach((item, index) => {
+            formData.append(`items[${index}][product_id]`, item.id);
+            formData.append(`items[${index}][quantity]`, item.qty);
+            formData.append(`items[${index}][size]`, item.size || '');
+            formData.append(`items[${index}][finish]`, item.finish || '');
+            formData.append(`items[${index}][price]`, item.price);
         });
         
         // Submit the form data
@@ -1007,6 +1018,13 @@ if (checkoutForm) {
         });
     });
 }
+
+// Update order summary when checkboxes change
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('item-checkbox')) {
+        updateOrderSummary();
+    }
+});
 </script>
 
 <!-- Checkout Modal -->

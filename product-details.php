@@ -726,6 +726,9 @@ try {
 </div>
 
 <script>
+// Output available sizes as a JS array
+const availableSizes = <?php echo json_encode($sizeDetails); ?>;
+
 // Add/Remove size-finish-qty rows
 const addOptionBtn = document.getElementById('addOption');
 if (addOptionBtn) {
@@ -1123,7 +1126,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 finish: finishCode,
                 finishName: finishName,
                 image: <?php echo json_encode($product['product_image']); ?>,
-                qty: 1
+                qty: 1,
+                sizes: availableSizes // <-- Add this line
             };
             
             // Get current cart
