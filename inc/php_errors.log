@@ -94,3 +94,50 @@ Stack trace:
 #0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
 #1 {main}
   thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 19:53:55 Europe/Berlin] === New Request ===
+[10-Jun-2025 19:53:55 Europe/Berlin] Request Method: POST
+[10-Jun-2025 19:53:55 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryj2kQbYJ4E0f4tbDj
+[10-Jun-2025 19:53:55 Europe/Berlin] Raw input: 
+[10-Jun-2025 19:53:55 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:53:55 Europe/Berlin] PHP Warning:  Undefined variable $data in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 19:53:55 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: array_merge(): Argument #1 must be of type array, null given in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php:96
+Stack trace:
+#0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
+#1 {main}
+  thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96

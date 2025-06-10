@@ -647,6 +647,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize cart if it exists
     if (window.cartFunctions && typeof window.cartFunctions.init === 'function') {
+        window.cartFunctions.init();
+    }
+});
+</script>
 
 <!-- Main JS File -->
 <script src="assets/js/main.js"></script>
@@ -698,6 +702,44 @@ function updateCheckoutModal(selectedItems) {
         if (item.image) {
             clone.querySelector('img').src = item.image;
             clone.querySelector('img').alt = item.name;
+        }
+        // Fetch sizes and finishes from server for this product (like product-details.php)
+        const sizeSelect = clone.querySelector('.item-size');
+        const finishSelect = clone.querySelector('.item-finish');
+        if (sizeSelect) {
+            sizeSelect.innerHTML = '<option value="">-- Select Size --</option>';
+            fetch('inc/fetch_sizes.php?product_id=' + encodeURIComponent(item.id))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && Array.isArray(data.sizes)) {
+                        data.sizes.filter(size => size && size !== 'null' && size !== 'undefined').forEach(size => {
+                            const opt = document.createElement('option');
+                            opt.value = size;
+                            opt.textContent = size;
+                            if (item.size && item.size === size) opt.selected = true;
+                            sizeSelect.appendChild(opt);
+                        });
+                    } else {
+                        // fallback: show a disabled option
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'No sizes available';
+                        opt.disabled = true;
+                        sizeSelect.appendChild(opt);
+                    }
+                })
+                .catch(() => {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'No sizes found';
+                    opt.disabled = true;
+                    sizeSelect.appendChild(opt);
+                });
+        }
+        // Remove increment/decrement buttons from checkout modal
+        const qtySelector = clone.querySelector('.quantity-selector');
+        if (qtySelector) {
+            qtySelector.innerHTML = `<input type="number" class="form-control form-control-sm quantity-input" value="${item.qty || 1}" min="1" aria-label="Quantity" readonly>`;
         }
         total += item.price * item.qty;
         cartItemsList.appendChild(clone);

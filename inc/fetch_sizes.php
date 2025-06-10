@@ -9,14 +9,19 @@ if (!$product_id) {
     exit;
 }
 
-// Example: sizes stored as comma-separated in `sizes` column of products table
-$sql = "SELECT sizes FROM products WHERE id = ? LIMIT 1";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param('i', $product_id);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $sizes = array_map('trim', explode(',', $row['sizes']));
+// Fetch the pricing JSON column for the product
+$stmt = $pdo->prepare("SELECT pricing FROM products WHERE id = ? LIMIT 1");
+$stmt->execute([$product_id]);
+if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $sizes = [];
+    $pricing = json_decode($row['pricing'], true);
+    if (is_array($pricing)) {
+        foreach ($pricing as $entry) {
+            if (!empty($entry['size']) && !in_array($entry['size'], $sizes)) {
+                $sizes[] = $entry['size'];
+            }
+        }
+    }
     echo json_encode(['status' => 'success', 'sizes' => $sizes]);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Product not found']);
