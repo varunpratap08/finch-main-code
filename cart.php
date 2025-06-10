@@ -287,7 +287,7 @@
                         <span>Total</span>
                         <span id="total">₹0.00</span>
                     </div>
-                    <button class="btn-checkout w-100" id="checkoutBtn" onclick="proceedToCheckout()" disabled>
+                    <button class="btn-checkout w-100" id="checkoutBtn" type="button" onclick="proceedToCheckout()" disabled>
                         <i class="bi bi-lock-fill"></i> Proceed to Checkout
                     </button>
                 </div>
@@ -604,26 +604,16 @@ function initializeSizeOptions() {
     });
 }
 
-// Initialize checkout modal when DOM is loaded
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for Bootstrap to be fully loaded
-    if (typeof bootstrap !== 'undefined') {
-        initializeModal();
-    } else {
-        // If Bootstrap is not loaded yet, wait for it
-        const checkBootstrap = setInterval(function() {
-            if (typeof bootstrap !== 'undefined') {
-                clearInterval(checkBootstrap);
-                initializeModal();
-            }
-        }, 100);
+    // Make sure Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap JS not loaded');
+        return;
     }
     
-    // Update checkout modal when it's shown
-    const checkoutModal = document.getElementById('checkoutModal');
-    if (checkoutModal) {
-        checkoutModal.addEventListener('show.bs.modal', updateCheckoutModal);
-    }
+    // Initialize any other required components
+    updateCartUI();
 });
 
 function initializeModal() {
@@ -806,20 +796,79 @@ function initializeModal() {
     }
 }
 
+// Get selected cart items (checkboxes)
+function getSelectedCartItems() {
+    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+    return Array.from(checkboxes).map(checkbox => {
+        const index = parseInt(checkbox.getAttribute('data-index'));
+        const cart = getCart();
+        return cart[index];
+    }).filter(Boolean);
+}
+
+// Update order summary in the modal
+function updateOrderSummary() {
+    const cart = getCart();
+    const checkoutItemsList = document.getElementById('checkoutItemsList');
+    const template = document.getElementById('cartItemTemplate');
+    
+    if (!checkoutItemsList || !template) return;
+    
+    // Clear existing items
+    checkoutItemsList.innerHTML = '';
+    
+    // Add each item to the summary
+    cart.forEach((item, index) => {
+        const clone = template.content.cloneNode(true);
+        const itemElement = clone.querySelector('.cart-item-details');
+        
+        // Set item data
+        itemElement.querySelector('img').src = item.image || 'assets/img/placeholder.jpg';
+        itemElement.querySelector('.product-name').textContent = item.name;
+        itemElement.querySelector('.product-price').textContent = '₹' + (item.price * (item.qty || 1)).toFixed(2);
+        itemElement.querySelector('.product-quantity').textContent = item.qty || 1;
+        
+        // Set hidden inputs
+        const inputs = clone.querySelectorAll('input[type="hidden"]');
+        inputs.forEach(input => {
+            if (input.className.includes('product-id')) input.value = item.id;
+            if (input.className.includes('product-quantity-input')) input.value = item.qty || 1;
+            if (input.className.includes('product-price-input')) input.value = item.price * (item.qty || 1);
+        });
+        
+        checkoutItemsList.appendChild(clone);
+    });
+    
+    // Update total
+    const total = cart.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
+    const totalElement = document.getElementById('totalPrice');
+    const totalInput = document.getElementById('totalPriceInput');
+    
+    if (totalElement) totalElement.textContent = total.toFixed(2);
+    if (totalInput) totalInput.value = total.toFixed(2);
+}
+
 // Handle checkout button click
 function proceedToCheckout() {
-    const selectedItems = getSelectedCartItems();
-    if (selectedItems.length === 0) {
-        alert('Please select at least one item to proceed to checkout.');
+    const cart = getCart();
+    if (cart.length === 0) {
+        showToast('Your cart is empty. Please add some products before checkout.');
         return;
     }
     
     const checkoutModalElement = document.getElementById('checkoutModal');
-    const checkoutModal = bootstrap.Modal.getOrCreateInstance(checkoutModalElement);
-    checkoutModal.show();
+    if (!checkoutModalElement) return;
     
-    // Update order summary in the modal
+    // Update order summary before showing the modal
     updateOrderSummary();
+    
+    // Initialize and show the modal
+    const checkoutModal = new bootstrap.Modal(checkoutModalElement, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
+    checkoutModal.show();
     
     // Set focus to the first input when modal is shown
     checkoutModalElement.addEventListener('shown.bs.modal', function() {

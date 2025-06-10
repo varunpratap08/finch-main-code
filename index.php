@@ -548,6 +548,149 @@ function limitWords($string, $limit = 30) {
 
 <style>
 /* Product Card Styles */
+/* Category Cards Container */
+#features.category-section .tab-content .row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Individual Card Styling */
+#features .category-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+}
+
+#features .category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Image Container - Fixed Height */
+#features .category-img-wrap {
+  width: 100%;
+  height: 220px; /* Fixed height for all images */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  overflow: hidden;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Ensure images maintain aspect ratio */
+#features .category-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+#features .category-card:hover .category-img {
+  transform: scale(1.05);
+}
+
+/* Card Body - Takes remaining height */
+#features .category-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: calc(100% - 220px); /* Adjust based on image height */
+}
+
+/* Title Bar - Fixed Height */
+#features .category-title-bar {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* Product Info - Flexible space */
+#features .product-info {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+/* Description - Limited to 3 lines */
+#features .description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Buttons Container - Fixed at bottom */
+#features .category-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+/* Ensure all cards in a row have equal height */
+#features .row > [class*='col-'] {
+  display: flex;
+  margin-bottom: 30px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1199px) {
+  #features .category-img-wrap {
+    height: 200px;
+  }
+  #features .category-details {
+    height: calc(100% - 200px);
+  }
+}
+
+@media (max-width: 991px) {
+  #features .category-img-wrap {
+    height: 180px;
+  }
+  #features .category-details {
+    height: calc(100% - 180px);
+    padding: 15px;
+  }
+}
+
+@media (max-width: 767px) {
+  #features .category-img-wrap {
+    height: 220px;
+  }
+  #features .category-details {
+    height: calc(100% - 220px);
+  }
+}
+
+@media (max-width: 575px) {
+  #features .category-img-wrap {
+    height: 200px;
+  }
+  #features .category-details {
+    height: calc(100% - 200px);
+  }
+}
+
 #hot-product .category-card {
   display: flex;
   flex-direction: column;
@@ -1449,7 +1592,15 @@ shuffle($testimonial_names);
 We recently renovated our house and replaced all the old locks with Finch door locks. The build quality is premium, the mechanism is smooth, and the lock feels very secure. The brushed finish also adds a nice touch to the main door – very modern and minimal.
         </p>
         <div class="author">
-          <img src="assets/img/image.png" alt="<?php echo htmlspecialchars($testimonial_names[0]['name']); ?>">
+          <div class="profile-icon" style="background-color: #f1c40f; color: #000; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">
+            <?php 
+              $initials = '';
+              $name_parts = explode(' ', $testimonial_names[0]['name']);
+              $initials .= $name_parts[0][0];
+              if (count($name_parts) > 1) $initials .= end($name_parts)[0];
+              echo strtoupper($initials); 
+            ?>
+          </div>
           <div>
             <h5><?php echo htmlspecialchars($testimonial_names[0]['name']); ?></h5>
             <span><?php echo htmlspecialchars($testimonial_names[0]['role']); ?></span>
@@ -1466,7 +1617,15 @@ We recently renovated our house and replaced all the old locks with Finch door l
 "Perfect fit for modern furniture" I’ve been using Finch locks for all my modular furniture projects especially wardrobes,drawers,and cabinets.Installation is straightforward,and clients love the soft close feel of the lock.It adds a level of quality that’s hard to find in other brands at this price.
         </p>
         <div class="author">
-          <img src="assets/img/image.png" alt="<?php echo htmlspecialchars($testimonial_names[1]['name']); ?>">
+          <div class="profile-icon" style="background-color: #2ecc71; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">
+            <?php 
+              $initials = '';
+              $name_parts = explode(' ', $testimonial_names[1]['name']);
+              $initials .= $name_parts[0][0];
+              if (count($name_parts) > 1) $initials .= end($name_parts)[0];
+              echo strtoupper($initials); 
+            ?>
+          </div>
           <div>
             <h5><?php echo htmlspecialchars($testimonial_names[1]['name']); ?></h5>
             <span><?php echo htmlspecialchars($testimonial_names[1]['role']); ?></span>
@@ -1484,7 +1643,15 @@ Finch locks elevate the entire aesthetic"
 I always recommend Finch locks for high-end residential interiors. They look sleek, perform smoothly, and give a solid click that clients love. Whether it's a wardrobe or a concealed door, Finch complements modern design perfectly.
         </p>
         <div class="author">
-          <img src="assets/img/image.png" alt="<?php echo htmlspecialchars($testimonial_names[2]['name']); ?>">
+          <div class="profile-icon" style="background-color: #3498db; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">
+            <?php 
+              $initials = '';
+              $name_parts = explode(' ', $testimonial_names[2]['name']);
+              $initials .= $name_parts[0][0];
+              if (count($name_parts) > 1) $initials .= end($name_parts)[0];
+              echo strtoupper($initials); 
+            ?>
+          </div>
           <div>
             <h5><?php echo htmlspecialchars($testimonial_names[2]['name']); ?></h5>
             <span><?php echo htmlspecialchars($testimonial_names[2]['role']); ?></span>
@@ -1502,7 +1669,15 @@ I always recommend Finch locks for high-end residential interiors. They look sle
 Installed Finch locks on my shop’s backroom and shutter. Very sturdy and weather-resistant. No rust, no jams even in humid conditions. It would be great if they offered a keyed-alike option for multiple locks.
         </p>
         <div class="author">
-          <img src="assets/img/image.png" alt="<?php echo htmlspecialchars($testimonial_names[3]['name']); ?>">
+          <div class="profile-icon" style="background-color: #9b59b6; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">
+            <?php 
+              $initials = '';
+              $name_parts = explode(' ', $testimonial_names[3]['name']);
+              $initials .= $name_parts[0][0];
+              if (count($name_parts) > 1) $initials .= end($name_parts)[0];
+              echo strtoupper($initials); 
+            ?>
+          </div>
           <div>
             <h5><?php echo htmlspecialchars($testimonial_names[3]['name']); ?></h5>
             <span><?php echo htmlspecialchars($testimonial_names[3]['role']); ?></span>
@@ -1588,11 +1763,12 @@ Installed Finch locks on my shop’s backroom and shutter. Very sturdy and weath
   padding-top: 15px;
 }
 
-.author img {
+.author img, .author .profile-icon {
   width: 45px;
   height: 45px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .author h5 {
