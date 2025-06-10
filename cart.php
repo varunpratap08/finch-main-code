@@ -337,6 +337,15 @@ function updateCartUI() {
     const cartItemsContainer = document.getElementById('cartItems');
     const subtotalElement = document.getElementById('subtotal');
     const totalElement = document.getElementById('total');
+    
+    // Helper function to ensure correct image path
+    const getImagePath = (imagePath) => {
+        if (!imagePath) return 'assets/img/placeholder-product.jpg';
+        if (imagePath.startsWith('http') || imagePath.startsWith('/') || imagePath.startsWith('assets/')) {
+            return imagePath;
+        }
+        return 'assets/img/' + imagePath;
+    };
     const checkoutBtn = document.getElementById('checkoutBtn');
     let continueShoppingBtn = document.querySelector('.continue-shopping-btn');
 
@@ -759,6 +768,7 @@ function updateCheckoutModal() {
     const totalPriceElement = document.getElementById('totalPrice');
     const totalPriceInput = document.getElementById('totalPriceInput');
     if (!cartItemsList || !totalPriceElement || !totalPriceInput) return;
+    
     // Clear the cart items list
     cartItemsList.innerHTML = '';
     
@@ -771,51 +781,107 @@ function updateCheckoutModal() {
     
     let total = 0;
     const template = document.getElementById('cartItemTemplate');
+    
     selectedItems.forEach((item, index) => {
         const clone = template.content.cloneNode(true);
+        
+        // Set basic product info
         clone.querySelector('.product-name').textContent = item.name;
         clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
         clone.querySelector('.product-quantity').textContent = item.qty;
-        clone.querySelector('.product-id').value = item.id;
-        clone.querySelector('.product-quantity-input').value = item.qty;
-        clone.querySelector('.product-price-input').value = item.price;
-        if (item.image) {
-            clone.querySelector('img').src = item.image;
-            clone.querySelector('img').alt = item.name;
+        
+        // Set hidden inputs
+        const hiddenInputs = {
+            'product-id': item.id,
+            'product-quantity-input': item.qty,
+            'product-price-input': item.price
+        };
+        
+        Object.entries(hiddenInputs).forEach(([className, value]) => {
+            const el = clone.querySelector(`.${className}`);
+            if (el) el.value = value;
+        });
+        
+        // Set product image - ensure the path is correct
+        const imgEl = clone.querySelector('img');
+        if (imgEl) {
+            // Check if the image path is relative and doesn't start with / or http
+            let imagePath = item.image || 'assets/img/placeholder-product.jpg';
+            if (!imagePath.startsWith('http') && !imagePath.startsWith('/') && !imagePath.startsWith('assets/')) {
+                imagePath = 'assets/img/' + imagePath;
+            }
+            imgEl.src = imagePath;
+            imgEl.alt = item.name || 'Product Image';
+            // Ensure image is visible
+            imgEl.style.display = 'block';
+            imgEl.style.maxHeight = '80px';
+            imgEl.style.width = 'auto';
+            imgEl.classList.add('img-fluid', 'rounded');
         }
+        
         // Populate size dropdown from item.sizes (admin-provided)
         const sizeSelect = clone.querySelector('.item-size');
-        if (sizeSelect && Array.isArray(item.sizes)) {
-            // Remove all options except the first (placeholder)
+        if (sizeSelect) {
+            // Clear existing options except the first one (Choose Size)
             while (sizeSelect.options.length > 1) sizeSelect.remove(1);
-            item.sizes.forEach(size => {
-                const option = document.createElement('option');
-                option.value = size;
-                option.textContent = size;
-                if (item.size && item.size === size) option.selected = true;
-                sizeSelect.appendChild(option);
-            });
-        }
-        // Set selected size if available (for fallback if not in sizes array)
-        if (item.size && sizeSelect) {
-            for (let i = 0; i < sizeSelect.options.length; i++) {
-                if (sizeSelect.options[i].value === item.size) {
-                    sizeSelect.selectedIndex = i;
-                    break;
+            
+            // Add sizes from item.sizes if available
+            if (Array.isArray(item.sizes) && item.sizes.length > 0) {
+                item.sizes.forEach(size => {
+                    if (size && typeof size === 'string') {
+                        const option = new Option(size, size);
+                        sizeSelect.add(option);
+                    } else if (size && typeof size === 'object' && size.size) {
+                        // Handle case where sizes are objects with size and price
+                        const option = new Option(size.size, size.size);
+                        sizeSelect.add(option);
+                    }
+                });
+                
+                // Select the first size by default if none is selected
+                if (sizeSelect.options.length > 1 && !item.size) {
+                    sizeSelect.selectedIndex = 1;
+                }
+            } else {
+                // Fallback if no sizes are provided
+                const option = new Option('Standard', 'Standard');
+                sizeSelect.add(option);
+            }
+            
+            // Set selected size if available
+            if (item.size) {
+                for (let i = 0; i < sizeSelect.options.length; i++) {
+                    if (sizeSelect.options[i].value === item.size) {
+                        sizeSelect.selectedIndex = i;
+                        break;
+                    }
                 }
             }
         }
+        
+        // Set finish if available
         if (item.finish) {
             const finishSelect = clone.querySelector('.item-finish');
             if (finishSelect) {
                 finishSelect.value = item.finish;
             }
         }
+        
         cartItemsList.appendChild(clone);
         total += item.price * item.qty;
     });
+    
+    // Update total
     totalPriceElement.textContent = total.toFixed(2);
     totalPriceInput.value = total.toFixed(2);
+    
+    // Initialize any tooltips or other UI elements
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        const tooltipTriggerList = [].slice.call(cartItemsList.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
 }
 
 // Update order summary in the modal
@@ -1023,6 +1089,101 @@ if (checkoutForm) {
 document.addEventListener('change', function(e) {
     if (e.target.classList.contains('item-checkbox')) {
         updateOrderSummary();
+        
+        // Enable/disable checkout button based on selection
+        const selectedItems = getSelectedCartItems();
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.disabled = selectedItems.length === 0;
+        }
+    }
+});
+
+// Handle size changes in the checkout form
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('item-size')) {
+        const itemCard = e.target.closest('.cart-item-details');
+        if (itemCard) {
+            // Update the display to show the selected size
+            const sizeDisplay = itemCard.querySelector('.selected-size-display');
+            if (sizeDisplay) {
+                sizeDisplay.textContent = e.target.value || 'Not selected';
+                sizeDisplay.classList.toggle('text-muted', !e.target.value);
+            }
+            
+            // Here you can add logic to update price if different sizes have different prices
+            // For example:
+            // const selectedOption = e.target.options[e.target.selectedIndex];
+            // if (selectedOption && selectedOption.dataset.price) {
+            //     const price = parseFloat(selectedOption.dataset.price);
+            //     // Update price in the cart and UI
+            // }
+            
+            // Update the hidden input for form submission
+            const sizeInput = itemCard.querySelector('input[name$="[size]"]');
+            if (sizeInput) {
+                sizeInput.value = e.target.value;
+            }
+        }
+    }
+});
+
+// Handle remove item button in checkout form
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-item')) {
+        e.preventDefault();
+        const itemCard = e.target.closest('.cart-item-details');
+        if (itemCard) {
+            // Find the corresponding cart item and remove it
+            const index = parseInt(itemCard.dataset.index);
+            if (!isNaN(index)) {
+                const cart = getCart();
+                cart.splice(index, 1);
+                setCart(cart);
+            }
+            
+            // Remove the item from the UI
+            itemCard.remove();
+            
+            // Update the order summary
+            updateOrderSummary();
+            
+            // Close the modal if no items left
+            const cartItemsList = document.getElementById('checkoutItemsList');
+            if (cartItemsList && cartItemsList.children.length === 0) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                if (modal) modal.hide();
+            }
+        }
+    }
+});
+
+// Handle form submission
+document.addEventListener('submit', function(e) {
+    if (e.target.id === 'checkoutForm') {
+        e.preventDefault();
+        
+        // Validate all required fields
+        const form = e.target;
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            showToast('Please fill in all required fields.');
+            return;
+        }
+        
+        // Submit the form if validation passes
+        form.submit();
     }
 });
 </script>
@@ -1078,13 +1239,16 @@ document.addEventListener('change', function(e) {
                                     <div class="card mb-3 cart-item-details">
                                         <div class="card-body">
                                             <div class="row align-items-center">
-                                                <div class="col-md-2">
-                                                    <img src="" class="img-fluid rounded" alt="Product Image" style="max-height: 80px;">
+                                                <div class="col-md-2 d-flex align-items-center justify-content-center" style="min-height: 120px;">
+                                                    <img src="assets/img/placeholder-product.jpg" class="img-fluid rounded" alt="Product Image" style="max-height: 80px; width: auto; object-fit: contain;">
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <h6 class="mb-1 product-name"></h6>
-                                                    <p class="mb-1">Price: <span class="product-price"></span></p>
+                                                    <h6 class="mb-2 product-name"></h6>
+                                                    <p class="mb-1">Price: <span class="product-price fw-bold"></span></p>
                                                     <p class="mb-1">Qty: <span class="product-quantity"></span></p>
+                                                    <input type="hidden" class="product-id" name="items[][product_id]">
+                                                    <input type="hidden" class="product-quantity-input" name="items[][quantity]">
+                                                    <input type="hidden" class="product-price-input" name="items[][price]">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <div class="mb-2">
