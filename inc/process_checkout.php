@@ -83,6 +83,9 @@ $isJsonRequest = strpos($contentType, 'application/json') !== false;
 // Always initialize $data as an array before use
 $data = [];
 
+// Initialize data array
+$data = [];
+
 // Parse input based on content type
 if ($isJsonRequest) {
     $input = file_get_contents('php://input');
@@ -98,50 +101,27 @@ if ($isJsonRequest) {
     // Handle form data
     $data = array_merge($data, $_POST);
     
-    // Try to decode any JSON fields
-    foreach (['cart_items', 'items'] as $field) {
-        if (!empty($data[$field]) && is_string($data[$field])) {
-            $decoded = json_decode($data[$field], true);
+    // Try to decode cart_items field
+    if (!empty($data['cart_items'])) {
+        if (is_string($data['cart_items'])) {
+            $decoded = json_decode($data['cart_items'], true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $data[$field] = $decoded;
+                $data['cart_items'] = $decoded;
+                error_log('Successfully decoded cart_items JSON: ' . print_r($decoded, true));
+            } else {
+                error_log('Failed to decode cart_items JSON: ' . json_last_error_msg());
             }
+        } else {
+            error_log('cart_items is not a string: ' . gettype($data['cart_items']));
         }
+    } else {
+        error_log('No cart_items found in request');
     }
 }
 
 try {
-    // Initialize data array
-    $data = [];
-    
-    // First, try to get data from $_POST
-    $data = $_POST;
-    
-    // Debug: Log received data
-    error_log('POST data: ' . print_r($_POST, true));
-    
-    // Check for JSON input
-    $input = file_get_contents('php://input');
-    error_log('Raw input: ' . $input);
-    
-    // If no POST data but we have input, try to parse it
-    if (empty($data) && !empty($input)) {
-        $json = json_decode($input, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $data = $json;
-            error_log('Successfully parsed JSON input');
-        } else {
-            // Try to parse as form data
-            parse_str($input, $formData);
-            if (!empty($formData)) {
-                $data = $formData;
-                error_log('Successfully parsed form data');
-            }
-        }
-    }
-    
-    // Remove all code that tries to reconstruct cart items from separate arrays
-    // Only use the cart_items field for order processing
-    // After parsing input, do:
+    // We already have $data populated from earlier code
+    // Just handle cart_items processing here
     $cart_items = [];
     if (!empty($data['cart_items'])) {
         if (is_string($data['cart_items'])) {

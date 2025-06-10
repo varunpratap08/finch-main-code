@@ -404,7 +404,7 @@
 </script>
 <!-- Checkout Modal -->
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="checkoutModalLabel">Complete Your Order</h5>
@@ -692,13 +692,17 @@ function updateCheckoutModal(selectedItems) {
     selectedItems.forEach((item, index) => {
         const clone = template.content.cloneNode(true);
         clone.querySelector('.product-name').textContent = item.name;
-        clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
+        // Always use unit price for hidden input, and show total in visible price
+        const unitPrice = parseFloat(item.price) || 0;
+        const qty = parseInt(item.qty) || 1;
+        clone.querySelector('.product-price').textContent = '₹' + (unitPrice * qty).toFixed(2);
         // Set hidden fields in col-md-4 only
         const col4 = clone.querySelector('.col-md-4');
         if (col4) {
             col4.querySelector('.product-id').value = item.id;
-            col4.querySelector('.product-quantity-input').value = item.qty;
-            col4.querySelector('.product-price-input').value = item.price;
+            col4.querySelector('.product-quantity-input').value = qty;
+            // FIX: Always set the correct unit price in the hidden input
+            col4.querySelector('.product-price-input').value = unitPrice;
         }
         if (item.image) {
             clone.querySelector('img').src = item.image;
@@ -740,9 +744,13 @@ function updateCheckoutModal(selectedItems) {
         // Remove increment/decrement buttons from checkout modal
         const qtySelector = clone.querySelector('.quantity-selector');
         if (qtySelector) {
-            qtySelector.innerHTML = `<input type="number" class="form-control form-control-sm quantity-input" value="${item.qty || 1}" min="1" aria-label="Quantity" readonly>`;
+            qtySelector.innerHTML = `<input type="number" class="form-control form-control-sm quantity-input" value="${qty}" min="1" aria-label="Quantity" readonly>`;
         }
-        total += item.price * item.qty;
+        // --- Ensure hidden quantity input is always in sync with visible input ---
+        if (col4) {
+            col4.querySelector('.product-quantity-input').value = qty;
+        }
+        total += unitPrice * qty;
         cartItemsList.appendChild(clone);
     });
     // Update total price in modal if you have such an element
@@ -755,7 +763,7 @@ function updateCheckoutModal(selectedItems) {
 (function() {
     const checkoutForm = document.getElementById('checkoutForm');
     if (!checkoutForm) return;
-    // Add hidden input for cart_items if not present
+    // Ensure hidden input for cart_items exists
     let cartItemsInput = checkoutForm.querySelector('input[name="cart_items"]');
     if (!cartItemsInput) {
         cartItemsInput = document.createElement('input');
@@ -763,38 +771,145 @@ function updateCheckoutModal(selectedItems) {
         cartItemsInput.name = 'cart_items';
         checkoutForm.appendChild(cartItemsInput);
     }
-    checkoutForm.addEventListener('submit', function(e) {
+    // Handle form submission
+    checkoutForm.onsubmit = function(e) {
+        e.preventDefault(); // Prevent default form submission
+        
+        // Create cart_items input if it doesn't exist
+        let cartItemsInput = this.querySelector('input[name="cart_items"]');
+        if (!cartItemsInput) {
+            cartItemsInput = document.createElement('input');
+            cartItemsInput.type = 'hidden';
+            cartItemsInput.name = 'cart_items';
+            this.appendChild(cartItemsInput);
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        
         // Collect all product rows in the modal
         const items = [];
         let hasInvalid = false;
-        document.querySelectorAll('#checkoutItemsList .cart-item-details').forEach(function(row) {
-            const id = row.querySelector('.product-id')?.value?.trim() || '';
-            const name = row.querySelector('.product-name')?.textContent?.trim() || '';
-            const price = parseFloat(row.querySelector('.product-price-input')?.value);
-            const qty = parseInt(row.querySelector('.product-quantity-input')?.value);
-            const size = row.querySelector('.item-size')?.value?.trim() || '';
-            const finish = row.querySelector('.item-finish')?.value?.trim() || '';
-            const image = row.querySelector('img')?.src || '';
-            // Only include items with all required fields and valid values
-            if (id && name && !isNaN(price) && price > 0 && Number.isInteger(qty) && qty > 0 && size && finish) {
-                items.push({id, name, price, qty, size, finish, image});
-            } else {
+        let totalAmount = 0;
+        
+        // Get all cart item cards in the checkout modal
+        const cartItemCards = document.querySelectorAll('#checkoutItemsList .card.cart-item-details');
+        
+        if (cartItemCards.length === 0) {
+            console.error('No cart items found in the checkout modal');
+            alert('No items found in your cart. Please add items before checking out.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            return false;
+        }
+        
+        cartItemCards.forEach(function(card) {
+            try {
+                const id = card.querySelector('input.product-id')?.value?.trim() || '';
+                const name = card.querySelector('.product-name')?.textContent?.trim() || '';
+                // Ensure price and qty are numbers
+                const priceRaw = card.querySelector('input.product-price-input')?.value;
+                const qtyRaw = card.querySelector('input.product-quantity-input')?.value;
+                const price = Number(priceRaw);
+                const qty = Number(qtyRaw);
+                const size = card.querySelector('select.item-size')?.value?.trim() || '';
+                const finish = card.querySelector('select.item-finish')?.value?.trim() || '';
+                const image = card.querySelector('img')?.src || '';
+                // Debug log
+                console.log('Collected item:', { id, name, price, priceType: typeof price, qty, qtyType: typeof qty, size, finish });
+                // Only include items with all required fields and valid values
+                if (id && name && !isNaN(price) && price > 0 && !isNaN(qty) && qty > 0 && size && finish) {
+                    items.push({
+                        id: id,
+                        name: name,
+                        price: price,
+                        qty: qty,
+                        size: size,
+                        finish: finish,
+                        image: image
+                    });
+                    totalAmount += price * qty;
+                } else {
+                    console.warn('Invalid item data:', { id, name, price, qty, size, finish });
+                    hasInvalid = true;
+                }
+            } catch (error) {
+                console.error('Error processing cart item:', error);
                 hasInvalid = true;
             }
         });
-        cartItemsInput.value = JSON.stringify(items);
-        console.log('Submitting cart_items:', cartItemsInput.value);
+        console.log('Final items array before validation:', items);
         if (items.length === 0) {
             alert('No valid products to order. Please check your cart and try again.');
-            e.preventDefault();
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
             return false;
         }
+        
         if (hasInvalid) {
             alert('Some products have missing or invalid details (size, finish, quantity, or price). Please review your order.');
-            e.preventDefault();
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
             return false;
         }
-    });
+        
+        // Set the cart items and total amount
+        cartItemsInput.value = JSON.stringify(items);
+        console.log('Setting cart_items value:', cartItemsInput.value);
+        
+        // Create FormData and manually append cart_items to ensure it's included
+        const formData = new FormData();
+        
+        // First append the cart_items and total_amount
+        formData.append('cart_items', cartItemsInput.value);
+        formData.append('total_amount', totalAmount.toFixed(2));
+        
+        // Then append all other form fields
+        const formElements = checkoutForm.elements;
+        for (let i = 0; i < formElements.length; i++) {
+            const element = formElements[i];
+            if (element.name && element.name !== 'cart_items' && element.name !== 'total_amount') {
+                formData.append(element.name, element.value);
+            }
+        }
+        
+        // Debug logging
+        console.log('Cart Items Array:', items);
+        console.log('Cart Items JSON:', cartItemsInput.value);
+        console.log('Form Data Contents:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ':', pair[1]);
+        }
+
+        // Send the request
+        fetch('inc/process_checkout.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Redirect to thank you page on success
+                window.location.href = 'thank-you.php?order_id=' + encodeURIComponent(data.order_id || '');
+            } else {
+                throw new Error(data.message || 'An error occurred while processing your order.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error: ' + error.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        });
+    };
 })();
 </script>
 
