@@ -141,3 +141,2158 @@ Stack trace:
 #0 C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php(96): array_merge(NULL, Array)
 #1 {main}
   thrown in C:\Users\Varun\Desktop\FINCH_LATEST\finch-main-code\inc\process_checkout.php on line 96
+[10-Jun-2025 19:58:00 Europe/Berlin] === New Request ===
+[10-Jun-2025 19:58:00 Europe/Berlin] Request Method: POST
+[10-Jun-2025 19:58:00 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryj2kQbYJ4E0f4tbDj
+[10-Jun-2025 19:58:00 Europe/Berlin] Raw input: 
+[10-Jun-2025 19:58:00 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] Raw input: 
+[10-Jun-2025 19:58:00 Europe/Berlin] === RAW INPUT ===
+[10-Jun-2025 19:58:00 Europe/Berlin] 
+[10-Jun-2025 19:58:00 Europe/Berlin] === END RAW INPUT ===
+[10-Jun-2025 19:58:00 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] Parsed cart items: Array
+(
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] Cart items after parsing: Array
+(
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] Final data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+    [cart_items] => Array
+        (
+        )
+
+)
+
+[10-Jun-2025 19:58:00 Europe/Berlin] No valid cart items found in data
+[10-Jun-2025 19:58:29 Europe/Berlin] === New Request ===
+[10-Jun-2025 19:58:29 Europe/Berlin] Request Method: POST
+[10-Jun-2025 19:58:29 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryDrAABT5H2J1BHNi4
+[10-Jun-2025 19:58:29 Europe/Berlin] Raw input: 
+[10-Jun-2025 19:58:29 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] Raw input: 
+[10-Jun-2025 19:58:29 Europe/Berlin] === RAW INPUT ===
+[10-Jun-2025 19:58:29 Europe/Berlin] 
+[10-Jun-2025 19:58:29 Europe/Berlin] === END RAW INPUT ===
+[10-Jun-2025 19:58:29 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] Parsed cart items: Array
+(
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] Cart items after parsing: Array
+(
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] Final data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+    [cart_items] => Array
+        (
+        )
+
+)
+
+[10-Jun-2025 19:58:29 Europe/Berlin] No valid cart items found in data
+[10-Jun-2025 20:02:35 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:02:35 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:02:35 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryDrAABT5H2J1BHNi4
+[10-Jun-2025 20:02:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:02:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:02:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:02:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:02:56 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:02:56 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:02:56 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary4DAvBscYSo06daYB
+[10-Jun-2025 20:02:56 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:02:56 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:02:56 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:02:56 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:07:59 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:07:59 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:07:59 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary4DAvBscYSo06daYB
+[10-Jun-2025 20:07:59 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:07:59 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:07:59 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:07:59 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:08:11 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:08:11 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:08:12 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:08:12 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:08:12 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:08:12 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:08:12 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:08:16 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:08:16 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:08:16 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:08:16 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:08:16 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:08:16 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:08:16 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:17:46 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:17:46 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:17:46 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:17:46 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:17:46 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:17:46 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:17:46 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:28 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:28 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:28 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:20:28 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:28 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:28 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:28 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:31 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:31 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:31 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:20:31 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:31 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:31 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:31 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:35 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:35 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:35 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:20:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:39 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:39 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:39 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:20:39 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:39 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:39 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:39 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:45 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:45 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:45 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryCtCfooF4ZmVoqCBE
+[10-Jun-2025 20:20:45 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:45 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:45 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:45 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:57 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:20:57 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:20:57 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryKBA2ONWuFeEBSmdw
+[10-Jun-2025 20:20:57 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:20:57 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => gd
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:57 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => gd
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:20:57 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:21:25 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:21:25 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:21:25 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary9VnXB2UHKxGAQIHy
+[10-Jun-2025 20:21:25 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:21:25 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:21:25 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:21:25 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:21:59 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:21:59 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:21:59 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryq39fw1R6xAQuhVZV
+[10-Jun-2025 20:21:59 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:21:59 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:21:59 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:21:59 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:15 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:24:15 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:24:15 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryq39fw1R6xAQuhVZV
+[10-Jun-2025 20:24:15 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:15 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:24:15 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:24:15 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:24 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:24:24 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:24:24 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryq39fw1R6xAQuhVZV
+[10-Jun-2025 20:24:24 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:24 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:24:24 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => 
+)
+
+[10-Jun-2025 20:24:24 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:39 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:24:39 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:24:39 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryrbziAKAzdvzD15UM
+[10-Jun-2025 20:24:39 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:24:39 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:24:39 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:24:39 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:25:52 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:25:52 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:25:52 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundarye94lTgB9Xr4TTn1p
+[10-Jun-2025 20:25:52 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:25:52 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:25:52 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:25:52 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:33:15 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:33:15 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:33:15 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundarye94lTgB9Xr4TTn1p
+[10-Jun-2025 20:33:15 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:33:15 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:33:15 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => bk
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:33:15 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:34:08 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:34:08 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:34:08 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary4CHWl25Uhpb5znf6
+[10-Jun-2025 20:34:08 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:34:08 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:34:08 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:34:08 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:33 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:40:33 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:40:33 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary4CHWl25Uhpb5znf6
+[10-Jun-2025 20:40:33 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:33 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:33 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:33 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:35 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:40:35 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:40:35 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundary4CHWl25Uhpb5znf6
+[10-Jun-2025 20:40:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:35 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => rg
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:35 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:53 Europe/Berlin] === New Request ===
+[10-Jun-2025 20:40:53 Europe/Berlin] Request Method: POST
+[10-Jun-2025 20:40:53 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryFjNABkOmxPJ8hP4c
+[10-Jun-2025 20:40:53 Europe/Berlin] Raw input: 
+[10-Jun-2025 20:40:53 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:53 Europe/Berlin] POST data: Array
+(
+    [customer_name] => varun pratap
+    [customer_email] => varun@gmail.com
+    [customer_phone] => 8905674321
+    [shipping_address] => etah 
+    [item_size] => Array
+        (
+            [0] => 17m-20mm
+        )
+
+    [item_finish] => Array
+        (
+            [0] => ch
+        )
+
+    [product_id] => Array
+        (
+            [0] => 23
+            [1] => 
+        )
+
+    [quantity] => Array
+        (
+            [0] => 1
+            [1] => 
+        )
+
+    [price] => Array
+        (
+            [0] => 0
+            [1] => 
+        )
+
+    [additional_notes] => namns
+)
+
+[10-Jun-2025 20:40:53 Europe/Berlin] Raw input: 

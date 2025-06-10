@@ -80,6 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 $isJsonRequest = strpos($contentType, 'application/json') !== false;
 
+// Always initialize $data as an array before use
+$data = [];
+
 // Parse input based on content type
 if ($isJsonRequest) {
     $input = file_get_contents('php://input');
@@ -136,112 +139,24 @@ try {
         }
     }
     
-        // Handle cart items - check multiple possible sources
-    $cartItems = [];
-    $input = file_get_contents('php://input');
-    
-    // Debug: Log the raw input data
-    error_log('=== RAW INPUT ===');
-    error_log($input);
-    error_log('=== END RAW INPUT ===');
-    error_log('POST data: ' . print_r($_POST, true));
-    
-    // First, try to parse as JSON
-    if (!empty($input)) {
-        $jsonData = json_decode($input, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            error_log('Successfully parsed JSON input');
-            $data = array_merge($data, $jsonData);
-        } else {
-            error_log('Failed to parse JSON input: ' . json_last_error_msg());
-        }
-    }
-    
-    // Now check for cart items in the data
+    // Remove all code that tries to reconstruct cart items from separate arrays
+    // Only use the cart_items field for order processing
+    // After parsing input, do:
+    $cart_items = [];
     if (!empty($data['cart_items'])) {
-        $cartItems = is_array($data['cart_items']) ? $data['cart_items'] : json_decode($data['cart_items'], true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('Failed to parse cart_items: ' . json_last_error_msg());
-            $cartItems = [];
-        }
-    } elseif (!empty($data['items'])) {
-        $cartItems = is_array($data['items']) ? $data['items'] : json_decode($data['items'], true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('Failed to parse items: ' . json_last_error_msg());
-            $cartItems = [];
+        if (is_string($data['cart_items'])) {
+            $cart_items = json_decode($data['cart_items'], true);
+        } else if (is_array($data['cart_items'])) {
+            $cart_items = $data['cart_items'];
         }
     }
-    
-    // Normalize cart items to ensure consistent structure
-    $normalizedCartItems = [];
-    $itemIndex = 0;
-    
-    if (!is_array($cartItems)) {
-        error_log('Invalid cart items format: ' . gettype($cartItems));
-        sendJsonResponse('error', 'Invalid cart items format');
+    if (empty($cart_items) || !is_array($cart_items)) {
+        cleanOutputBuffer();
+        sendJsonResponse('error', 'No cart items received');
     }
-    
-    foreach ($cartItems as $item) {
-        $itemIndex++;
-        
-        // Log the raw item for debugging
-        error_log("Processing cart item {$itemIndex}: " . print_r($item, true));
-        
-        try {
-            // Handle both old and new formats
-            $normalizedItem = [
-                'id' => $item['id'] ?? $item['product_id'] ?? null,
-                'product_id' => $item['id'] ?? $item['product_id'] ?? null,
-                'name' => $item['name'] ?? 'Product',
-                'price' => floatval($item['price'] ?? 0),
-                'qty' => intval($item['qty'] ?? $item['quantity'] ?? 1),
-                'image' => $item['image'] ?? '',
-                'size' => $item['size'] ?? 'Not specified',
-                'finish' => $item['finish'] ?? 'Not specified'
-            ];
-            
-            // Validate required fields
-            if ($normalizedItem['id'] === null) {
-                throw new Exception('Missing product ID');
-            }
-            
-            if ($normalizedItem['qty'] < 1) {
-                throw new Exception('Invalid quantity');
-            }
-            
-            $normalizedCartItems[] = $normalizedItem;
-            
-        } catch (Exception $e) {
-            error_log("Error processing cart item {$itemIndex}: " . $e->getMessage());
-            // Continue with other items but log the error
-            continue;
-        }
-    }
-    
-    $cartItems = $normalizedCartItems;
-    
-    // Log the final cart items
-    error_log('Parsed cart items: ' . print_r($cartItems, true));
     
     // Debug: Log the cart items
-    error_log('Cart items after parsing: ' . print_r($cartItems, true));
-    
-    // Set the cart items in data
-    $data['cart_items'] = $cartItems;
-    
-    // Debug: Log final data
-    error_log('Final data: ' . print_r($data, true));
-    
-    // Ensure cart_items exists and is an array
-    if (empty($data['cart_items']) || !is_array($data['cart_items'])) {
-        error_log('No valid cart items found in data');
-        sendJsonResponse('error', 'No cart items received', [
-            'received_data' => $data,
-            'post' => $_POST,
-            'raw_input' => $input,
-            'server' => $_SERVER
-        ]);
-    }
+    error_log('Cart items: ' . print_r($cart_items, true));
     
     // Validate required fields
     $required = [
@@ -378,26 +293,9 @@ try {
         sendJsonResponse('error', implode("\n", $errors));
     }
 
-    // Use the order items we already prepared
-    $order_details = json_encode($order_items);
-
-    // First, verify the product IDs exist
-    $product_ids = array_unique(array_column($order_items, 'product_id'));
-    $placeholders = rtrim(str_repeat('?,', count($product_ids)), ',');
-
-    $stmt = $pdo->prepare("SELECT id FROM products WHERE id IN ($placeholders)");
-    $stmt->execute($product_ids);
-    $existing_products = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    // Check for missing products
-    $missing_products = array_diff($product_ids, $existing_products);
-    if (!empty($missing_products)) {
-        throw new Exception('The following product IDs are not valid: ' . implode(', ', $missing_products));
-    }
-
-    // Prepare order details as JSON
+    // Prepare order details as JSON using normalized $order_items
     $order_details_json = json_encode([
-        'items' => $cart_items,
+        'items' => $order_items,
         'subtotal' => $total_amount,
         'shipping' => 0, // Add shipping cost if any
         'total' => $total_amount,
@@ -406,7 +304,7 @@ try {
 
     // Get the first product details for the main order record
     $first_product_id = $product_ids[0];
-    $first_item = $cart_items[0];
+    $first_item = $order_items[0];
     
     // Insert order with order_details as JSON
     $stmt = $pdo->prepare("
@@ -508,7 +406,7 @@ try {
     }
 
 
-    // Prepare order details as JSON
+    // Prepare order details as JSON using normalized $order_items
     $order_details_json = json_encode([
         'items' => $order_items,
         'subtotal' => $total_amount,

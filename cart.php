@@ -460,14 +460,14 @@
                                                     <h6 class="mb-2 product-name">Product Name</h6>
                                                     <div class="mb-2">
                                                         <label class="form-label small mb-1">Size <span class="text-danger">*</span></label>
-                                                        <select class="form-select form-select-sm item-size" name="item_size[]" required>
+                                                        <select class="form-select form-select-sm item-size" required>
                                                             <option value="">-- Select Size --</option>
                                                             <!-- Sizes will be populated by JavaScript -->
                                                         </select>
                                                     </div>
                                                     <div class="mb-2">
                                                         <label class="form-label small mb-1">Finish <span class="text-danger">*</span></label>
-                                                        <select class="form-select form-select-sm item-finish" name="item_finish[]" required>
+                                                        <select class="form-select form-select-sm item-finish" required>
                                                             <option value="">-- Select Finish --</option>
                                                             <option value="sn">Satin Nickel</option>
                                                             <option value="bk">Black</option>
@@ -478,9 +478,9 @@
                                                             <option value="gl">Glossy</option>
                                                         </select>
                                                     </div>
-                                                    <input type="hidden" class="product-id" name="product_id[]">
-                                                    <input type="hidden" class="product-quantity-input" name="quantity[]">
-                                                    <input type="hidden" class="product-price-input" name="price[]">
+                                                    <input type="hidden" class="product-id">
+                                                    <input type="hidden" class="product-quantity-input">
+                                                    <input type="hidden" class="product-price-input">
                                                 </div>
                                                 <div class="col-md-3 text-md-end">
                                                     <div class="input-group quantity-selector">
@@ -495,9 +495,6 @@
                                                 </div>
                                                 <div class="col-md-3 text-md-end">
                                                     <h6 class="mb-1 product-price">₹0.00</h6>
-                                                    <input type="hidden" class="product-id" name="product_id[]" value="">
-                                                    <input type="hidden" class="product-quantity-input" name="quantity[]" value="">
-                                                    <input type="hidden" class="product-price-input" name="price[]" value="">
                                                 </div>
                                             </div>
                                         </div>
@@ -696,9 +693,13 @@ function updateCheckoutModal(selectedItems) {
         const clone = template.content.cloneNode(true);
         clone.querySelector('.product-name').textContent = item.name;
         clone.querySelector('.product-price').textContent = '₹' + (item.price * item.qty).toFixed(2);
-        clone.querySelector('.product-id').value = item.id;
-        clone.querySelector('.product-quantity-input').value = item.qty;
-        clone.querySelector('.product-price-input').value = item.price;
+        // Set hidden fields in col-md-4 only
+        const col4 = clone.querySelector('.col-md-4');
+        if (col4) {
+            col4.querySelector('.product-id').value = item.id;
+            col4.querySelector('.product-quantity-input').value = item.qty;
+            col4.querySelector('.product-price-input').value = item.price;
+        }
         if (item.image) {
             clone.querySelector('img').src = item.image;
             clone.querySelector('img').alt = item.name;
@@ -747,6 +748,54 @@ function updateCheckoutModal(selectedItems) {
     // Update total price in modal if you have such an element
     // Example: document.getElementById('totalPrice').textContent = total.toFixed(2);
 }
+</script>
+
+<!-- Ensure cart_items is sent as JSON -->
+<script>
+(function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (!checkoutForm) return;
+    // Add hidden input for cart_items if not present
+    let cartItemsInput = checkoutForm.querySelector('input[name="cart_items"]');
+    if (!cartItemsInput) {
+        cartItemsInput = document.createElement('input');
+        cartItemsInput.type = 'hidden';
+        cartItemsInput.name = 'cart_items';
+        checkoutForm.appendChild(cartItemsInput);
+    }
+    checkoutForm.addEventListener('submit', function(e) {
+        // Collect all product rows in the modal
+        const items = [];
+        let hasInvalid = false;
+        document.querySelectorAll('#checkoutItemsList .cart-item-details').forEach(function(row) {
+            const id = row.querySelector('.product-id')?.value?.trim() || '';
+            const name = row.querySelector('.product-name')?.textContent?.trim() || '';
+            const price = parseFloat(row.querySelector('.product-price-input')?.value);
+            const qty = parseInt(row.querySelector('.product-quantity-input')?.value);
+            const size = row.querySelector('.item-size')?.value?.trim() || '';
+            const finish = row.querySelector('.item-finish')?.value?.trim() || '';
+            const image = row.querySelector('img')?.src || '';
+            // Only include items with all required fields and valid values
+            if (id && name && !isNaN(price) && price > 0 && Number.isInteger(qty) && qty > 0 && size && finish) {
+                items.push({id, name, price, qty, size, finish, image});
+            } else {
+                hasInvalid = true;
+            }
+        });
+        cartItemsInput.value = JSON.stringify(items);
+        console.log('Submitting cart_items:', cartItemsInput.value);
+        if (items.length === 0) {
+            alert('No valid products to order. Please check your cart and try again.');
+            e.preventDefault();
+            return false;
+        }
+        if (hasInvalid) {
+            alert('Some products have missing or invalid details (size, finish, quantity, or price). Please review your order.');
+            e.preventDefault();
+            return false;
+        }
+    });
+})();
 </script>
 
 </body>
