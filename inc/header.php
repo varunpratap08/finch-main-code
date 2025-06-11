@@ -40,14 +40,46 @@
     margin-left: 7px;
   }
 }
+
+/* Active navigation item styles */
+.navmenu > ul > li.active > a {
+  color: #DEB462 !important;
+  font-weight: 600;
+  position: relative;
+}
+
+.navmenu > ul > li.active > a:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  left: 0;
+  bottom: -5px;
+  background-color: #DEB462;
+  transition: all 0.3s ease-in-out;
+}
+
+.navmenu > ul > li:not(.active):hover > a {
+  color: #DEB462 !important;
+}
           
       </style>
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="index.php">Home</a></li>
-          <li><a href="about.php">About Us</a></li>
-          <li><a href="products.php">Products</a></li>
+          <?php 
+          $currentPage = basename($_SERVER['PHP_SELF']); 
+          $isCartPage = ($currentPage === 'cart.php');
+          ?>
+          <li class="<?php echo ($currentPage === 'index.php') ? 'active' : ''; ?>">
+            <a href="index.php">Home</a>
+          </li>
+          <li class="<?php echo ($currentPage === 'about.php') ? 'active' : ''; ?>">
+            <a href="about.php">About Us</a>
+          </li>
+          <li class="<?php echo (in_array($currentPage, ['products.php', 'product-details.php'])) ? 'active' : ''; ?>">
+            <a href="products.php">Products</a>
+          </li>
           <li class="d-none d-lg-flex align-items-center">
             <a href="cart.php" class="cart-link position-relative" style="color: #222; text-decoration: none;">
               <i class="bi bi-cart" style="font-size: 1.5rem;"></i>

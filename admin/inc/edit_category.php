@@ -41,88 +41,268 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Category</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Category - Admin Panel</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #6b7280;
+            --light: #f9fafb;
+            --lighter: #f3f4f6;
+            --dark: #111827;
+            --gray: #6b7280;
+            --gray-light: #9ca3af;
+            --gray-lighter: #e5e7eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px 0;
         }
 
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
         }
 
-        button {
-            background-color: #3B71CA;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
+        .form-header h1 {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
         }
 
-        button:hover {
-            background-color: #2A5A9A;
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
         }
 
-        img {
-            display: block;
-            max-width: 150px;
-            margin: 10px 0;
-            border-radius: 5px;
+        .form-section h5 {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
         }
 
-        .error {
-            color: red;
-            margin-bottom: 10px;
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select, .form-control:focus, .form-select:focus {
+            border-radius: 6px;
+            padding: 0.65rem 1rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            padding: 0.65rem 1.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn i {
+            font-size: 1.1em;
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-secondary {
+            color: var(--gray);
+            border-color: var(--gray-light);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--gray-lighter);
+            color: var(--dark);
+        }
+
+        .img-preview {
+            max-width: 200px;
+            height: auto;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding: 0.25rem;
+            background: white;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 1rem;
+                border-radius: 8px;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .d-flex {
+                flex-direction: column;
+                gap: 0.75rem !important;
+            }
+            
+            .d-flex.justify-content-between {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+            
+            .d-flex.gap-3 {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Edit Category</h2>
-            <div class="btn-group">
-                <a href="../category.php" class="btn btn-secondary">
+    <div class="form-container">
+        <header class="form-header">
+            <div>
+                <h1><i class="bi bi-tag-fill me-2"></i>Edit Category</h1>
+                <p class="text-muted">Update the category details below</p>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <a href="../category.php" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Categories
                 </a>
                 <a href="../dashboard.php" class="btn btn-primary">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </div>
-        </div>
+        </header>
 
         <?php if (isset($error)) : ?>
-            <p class="error"><?php echo htmlspecialchars($error); ?></p>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?php echo htmlspecialchars($error); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         <?php endif; ?>
 
-        <form action="" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST" class="needs-validation" novalidate>
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($category['id']); ?>">
+            
+            <div class="form-section">
+                <h5><i class="bi bi-info-circle me-2"></i>Category Information</h5>
+                
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="<?php echo htmlspecialchars($category['category_name']); ?>" required>
+                            <div class="invalid-feedback">
+                                Please provide a category name.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <label for="name">Category Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($category['category_name']); ?>" required>
-
-           
-
-            <button type="submit" name="update">Update Category</button>
+            <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+                <button type="reset" class="btn btn-light">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset Form
+                </button>
+                <div class="d-flex gap-3">
+                    <a href="../category.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </a>
+                    <button type="submit" name="update" class="btn btn-primary px-4">
+                        <i class="bi bi-save"></i> Update Category
+                    </button>
+                </div>
+            </div>
         </form>
     </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (function () {
+            'use strict'
+            
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+            
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
 </body>
 </html>

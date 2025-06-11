@@ -311,7 +311,48 @@
 
 /* Adjust spacing between sections */
 #features.category-section {
-  padding: 40px 0 60px;
+  padding: 80px 0 60px;
+}
+
+#features.category-section h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  display: block;
+  clear: both;
+}
+
+.category-header {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.category-header h1 {
+  margin-bottom: 1rem;
+}
+
+.category-description {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #666;
+  max-width: 100%;
+  margin: 0;
+  display: block;
+  text-align: left;
+  padding: 0 0 0 8px;
+}
+
+@media (max-width: 768px) {
+  #features.category-section h1 {
+    font-size: 2rem;
+  }
+  #features.category-section p {
+    font-size: 1rem;
+    padding: 0 15px;
+  }
+}
 }
 
 /* Testimonials Section Styling */
@@ -1016,9 +1057,13 @@ function limitWords($string, $limit = 30) {
 <section id="features" class="features section category-section">
   <div class="container">
     <div class="row">
-      <div class="col-lg-12">
-        <h1>Shop by Category</h1>
-        <p>Explore a wide variety of products for your needs. From home to office supplies, our categories make shopping easier for you. Find exactly what you are looking for: for daily use or special occasions. Our diversified selection ensures that there is something for everyone.</p>
+      <div class="col-12">
+        <div class="category-header">
+          <h1>Shop by Category</h1>
+          <p class="category-description">
+            Explore a wide variety of products for your needs. From home to office supplies, our categories make shopping easier for you. Find exactly what you are looking for: for daily use or special occasions. Our diversified selection ensures that there is something for everyone.
+          </p>
+        </div>
       </div>
     </div>
     <?php if (count($categories) > 0): ?>

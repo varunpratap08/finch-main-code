@@ -767,11 +767,7 @@ $products = $pdo->query("SELECT * FROM products ORDER BY id DESC")->fetchAll(PDO
                                                         title="Delete Product">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
-                                                <button class="btn btn-info btn-sm" 
-                                                        data-bs-toggle="tooltip" 
-                                                        title="View Details">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
+
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -817,10 +813,6 @@ $products = $pdo->query("SELECT * FROM products ORDER BY id DESC")->fetchAll(PDO
     </div>
 </section>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <script>
 

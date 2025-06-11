@@ -103,6 +103,11 @@ try {
                 #buyNowModal {
                     z-index: 1060 !important;
                 }
+                /* Style for finish dropdown in buy now modal */
+                #buyNowModal .finish-option {
+                    font-size: 0.9rem !important;
+                    padding: 0.375rem 0.75rem !important;
+                }
                 
                 /* Finish Options Styles */
                 .finish-option {
@@ -1249,6 +1254,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/aos/aos.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="assets/js/main.js"></script>
 
 </body>
 

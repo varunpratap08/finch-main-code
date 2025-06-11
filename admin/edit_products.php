@@ -98,6 +98,8 @@ $pricing = json_decode($product['pricing'] ?? '[]', true) ?: [];
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
             --border-radius: 0.5rem;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
@@ -115,210 +117,185 @@ $pricing = json_decode($product['pricing'] ?? '[]', true) ?: [];
         body {
             background-color: #f3f4f6;
             color: var(--dark);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
-        
+
         .form-container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+            margin: 2rem auto;
+            padding: 2.5rem;
             background: white;
-            min-height: 100vh;
-        }
-        
-        @media (min-width: 1200px) {
-            .form-container {
-                padding: 3rem 4rem;
-            }
+            border-radius: 12px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .form-header {
-            padding: 1.5rem 0;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--gray-lighter);
         }
-        
+
         .form-header h1 {
-            font-size: 1.75rem;
             font-weight: 700;
             color: var(--dark);
             margin-bottom: 0.5rem;
         }
-        
+
         .form-header p {
             color: var(--gray);
-            margin-bottom: 0;
+            margin-bottom: 1.5rem;
         }
         
         .form-section {
-            background: white;
-            border-radius: var(--border-radius);
+            background: #f8f9fa;
+            border-radius: 8px;
             padding: 2rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--gray-lighter);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
         }
-        
+
+        .form-section h5 {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
         .form-section:hover {
             box-shadow: var(--shadow);
         }
         
-        .form-section h5 {
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .form-section h5 i {
-            font-size: 1.25rem;
-        }
-        
         .form-label {
             font-weight: 500;
-            color: var(--dark);
+            color: #495057;
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
         }
         
         .form-control, .form-select, .form-control:focus, .form-select:focus {
-            border-radius: var(--border-radius);
-            padding: 0.625rem 0.875rem;
-            border: 1px solid var(--gray-lighter);
-            font-size: 0.9375rem;
-            color: var(--dark);
-            transition: var(--transition);
-            height: calc(2.5rem + 2px);
+            border-radius: 6px;
+            padding: 0.65rem 1rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
         }
-        
+
         .form-control:focus, .form-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
         }
-        
-        textarea.form-control {
-            min-height: 100px;
-            height: auto;
-            resize: vertical;
-        }
-        
+
         .btn {
-            font-weight: 500;
-            border-radius: var(--border-radius);
-            padding: 0.625rem 1.25rem;
-            transition: var(--transition);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            font-size: 0.9375rem;
+            font-weight: 500;
+            padding: 0.65rem 1.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
         }
-        
+
         .btn i {
             font-size: 1.1em;
+            margin-right: 0.5rem;
         }
-        
+
         .btn-primary {
             background-color: var(--primary);
-            border: none;
-            color: white;
+            border-color: var(--primary);
         }
-        
-        .btn-primary:hover, .btn-primary:focus {
+
+        .btn-primary:hover {
             background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
             transform: translateY(-1px);
-            box-shadow: var(--shadow);
         }
-        
+
         .btn-outline-secondary {
-            border: 1px solid var(--gray-lighter);
             color: var(--gray);
-            background: white;
-        }
-        
-        .btn-outline-secondary:hover, .btn-outline-secondary:focus {
-            background: var(--lighter);
             border-color: var(--gray-light);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
         }
-        
-        .btn-light {
-            background-color: var(--lighter);
-            color: var(--gray);
-        }
-        
-        .btn-light:hover {
+
+        .btn-outline-secondary:hover {
             background-color: var(--gray-lighter);
+            color: var(--dark);
         }
         
         .table {
-            border-collapse: separate;
-            border-spacing: 0;
             width: 100%;
+            margin-bottom: 1.5rem;
+            color: #212529;
+            vertical-align: top;
+            border-color: #e9ecef;
             background: white;
-            border-radius: var(--border-radius);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: var(--shadow-sm);
         }
         
         .table th {
-            background-color: var(--lighter);
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
             font-weight: 600;
-            color: var(--dark);
-            padding: 1rem 1.25rem;
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            border: none;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            padding: 1rem;
         }
         
         .table td {
-            padding: 1rem 1.25rem;
+            padding: 1rem;
             vertical-align: middle;
-            border-top: 1px solid var(--gray-lighter);
+            border-top: 1px solid #e9ecef;
+            background: white;
         }
-        
-        .table tr:last-child td {
-            border-bottom: none;
+
+        .table input[type="text"],
+        .table input[type="number"] {
+            min-width: 80px;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
-        
-        .table tbody tr:hover {
-            background-color: rgba(249, 250, 251, 0.5);
+
+        .table input[type="text"]:focus,
+        .table input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
         }
-        
-        .action-buttons .btn {
-            margin-left: 0.5rem;
+
+        .remove-row {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
-        
-        /* Responsive styles */
+
+        .img-thumbnail {
+            max-width: 120px;
+            height: auto;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding: 0.25rem;
+            background: white;
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 992px) {
             .form-container {
                 padding: 1.5rem;
+                margin: 1rem;
+                border-radius: 8px;
             }
             
             .form-section {
                 padding: 1.5rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1rem;
-            }
-            
-            .form-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-                padding: 1rem 0;
             }
             
             .form-header .btn-group {
@@ -367,8 +344,8 @@ $pricing = json_decode($product['pricing'] ?? '[]', true) ?: [];
     <div class="form-container">
         <header class="form-header">
             <div>
-                <h1><?= $pageTitle ?></h1>
-                <p><?= isset($_GET['edit_id']) ? 'Update the product details below' : 'Fill in the details to add a new product' ?></p>
+                <h1><i class="bi bi-box-seam me-2"></i><?= $pageTitle ?></h1>
+                <p class="text-muted"><?= isset($_GET['edit_id']) ? 'Update the product details below' : 'Fill in the details to add a new product' ?></p>
             </div>
             <div class="d-flex gap-2 mt-3">
                 <a href="products.php" class="btn btn-outline-secondary">
@@ -387,8 +364,9 @@ $pricing = json_decode($product['pricing'] ?? '[]', true) ?: [];
 
             <div class="form-section">
                 <h5><i class="bi bi-box-seam me-2"></i>Product Information</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
+                <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="form-group">
                         <label for="product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="product_name" name="product_name" 
                                value="<?= htmlspecialchars($product['product_name'] ?? '') ?>" required>
@@ -396,91 +374,137 @@ $pricing = json_decode($product['pricing'] ?? '[]', true) ?: [];
                             Please provide a product name.
                         </div>
                     </div>
-          </div>
+                </div>
 
-          <div class="col-lg-6">
-            <div class="mb-3 row">
-              <label for="category" class="col-sm-4 col-form-label">Category</label>
-              <div class="col-sm-8">
-                <input type="text" class="form-control" name="category" value="<?= $product['category_name'] ?>" required>
-              </div>
-            </div>
-          </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="category" name="category" 
+                               value="<?= htmlspecialchars($product['category_name'] ?? '') ?>" required>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
+                    </div>
+                </div>
 
-          <div class="col-lg-6">
-            <div class="mb-3 row">
-              <label for="sub_category" class="col-sm-4 col-form-label">Sub-Category</label>
-              <div class="col-sm-8">
-                <input type="text" class="form-control" name="sub_category" value="<?= $product['subcategory_name'] ?>" required>
-              </div>
-            </div>
-          </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="sub_category" class="form-label">Sub-Category <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sub_category" name="sub_category"
+                               value="<?= htmlspecialchars($product['subcategory_name'] ?? '') ?>" required>
+                        <div class="invalid-feedback">
+                            Please select a sub-category.
+                        </div>
+                    </div>
+                </div>
 
-          <div class="col-lg-6">
-            <div class="mb-3 row">
-              <label for="product_image" class="col-sm-4 col-form-label">Product Image</label>
-              <div class="col-sm-8">
-                <input type="file" class="form-control" name="product_image" accept="image/*">
-                <?php if (!empty($product['product_image'])): ?>
-                  <img src="uploads/<?= $product['product_image'] ?>" class="img-thumbnail mt-2" width="100">
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="product_image" class="form-label">Product Image</label>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <input type="file" class="form-control" id="product_image" name="product_image" accept="image/*">
+                                <div class="form-text">Recommended size: 800x800px. Max file size: 2MB</div>
+                            </div>
+                            <?php if (!empty($product['product_image'])): ?>
+                            <div class="text-center">
+                                <p class="small mb-1">Current Image:</p>
+                                <img src="uploads/<?= $product['product_image'] ?>" class="img-thumbnail" style="max-width: 120px;">
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
         </div>
 
-        <div class="mb-3">
-          <label for="description" class="form-label">Product Description</label>
-          <textarea class="form-control" name="description"><?= $product['description'] ?></textarea>
-        </div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="description" class="form-label">Product Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="Enter detailed product description..."><?= htmlspecialchars($product['description'] ?? '') ?></textarea>
+                    </div>
+                </div>
 
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Size</th>
-                <th>SN</th>
-                <th>BK</th>
-                <th>AN</th>
-                <th>GD</th>
-                <th>RG</th>
-                <th>CH</th>
-                <th>GL</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="pricingTable">
-              <?php foreach ($pricing as $p): ?>
-                <tr>
-                  <td><input type="text" class="form-control" name="size[]" value="<?= $p['size'] ?>"></td>
-                  <td><input type="text" class="form-control" name="sn_price[]" value="<?= $p['sn_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="bk_price[]" value="<?= $p['bk_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="an_price[]" value="<?= $p['an_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="gd_price[]" value="<?= $p['gd_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="rg_price[]" value="<?= $p['rg_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="ch_price[]" value="<?= $p['ch_price'] ?>"></td>
-                  <td><input type="text" class="form-control" name="gl_price[]" value="<?= $p['gl_price'] ?>"></td>
-                  <td><button type="button" class="btn btn-danger removeRow">X</button></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-          <button type="button" id="addRow" class="btn btn-primary">Add Row</button>
-        </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Pricing Information</h5>
+                        <button type="button" id="addRow" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg"></i> Add Row
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive border rounded">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="15%">Size</th>
+                                    <th>SN</th>
+                                    <th>BK</th>
+                                    <th>AN</th>
+                                    <th>GD</th>
+                                    <th>RG</th>
+                                    <th>CH</th>
+                                    <th>GL</th>
+                                    <th width="80px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pricingTable">
+                                <?php if (empty($pricing)): ?>
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        <i class="bi bi-info-circle me-2"></i>No pricing information added yet.
+                                    </td>
+                                </tr>
+                                <?php else: ?>
+                                    <?php foreach ($pricing as $index => $p): ?>
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="size[]" 
+                                                   value="<?= htmlspecialchars($p['size'] ?? '') ?>" placeholder="e.g., S, M, L">
+                                        </td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="sn_price[]" 
+                                               value="<?= htmlspecialchars($p['sn_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="bk_price[]" 
+                                               value="<?= htmlspecialchars($p['bk_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="an_price[]" 
+                                               value="<?= htmlspecialchars($p['an_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="gd_price[]" 
+                                               value="<?= htmlspecialchars($p['gd_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="rg_price[]" 
+                                               value="<?= htmlspecialchars($p['rg_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="ch_price[]" 
+                                               value="<?= htmlspecialchars($p['ch_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="gl_price[]" 
+                                               value="<?= htmlspecialchars($p['gl_price'] ?? '') ?>" placeholder="0.00"></td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row" 
+                                                    data-bs-toggle="tooltip" title="Remove row">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-text mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Enter pricing for different sizes and finishes. Leave blank if not applicable.
+                    </div>
+                </div>
 
-        <div class="text-center mt-3">
-          <button type="submit" class="btn btn-success"><?= isset($_GET['edit_id']) ? 'Update' : 'Add' ?> Product</button>
-        </div>
-                      </div>
-            </div>
-
-            <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+        <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
             <button type="reset" class="btn btn-light">
                 <i class="bi bi-arrow-counterclockwise"></i> Reset Form
             </button>
-            <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save"></i> <?= isset($_GET['edit_id']) ? 'Update Product' : 'Save Product' ?>
-            </button>
+            <div class="d-flex gap-3">
+                <a href="products.php" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-save"></i> <?= isset($_GET['edit_id']) ? 'Update Product' : 'Save Product' ?>
+                </button>
+            </div>
         </div>
         </form>
     </div>

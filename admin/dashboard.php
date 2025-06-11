@@ -16,6 +16,23 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
+  <style>
+    /* Make cards hoverable */
+    .card {
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .card a {
+      color: inherit;
+    }
+    .card a:hover {
+      text-decoration: none;
+    }
+  </style>
+
   <title>Dashboard </title>
   <meta content="" name="description">
   <meta content="" name="keywords">
@@ -81,77 +98,62 @@ $total_enquiry = $result['total_enquiry'];
         <div class="col-lg-12">
           <div class="row">
 
-            <!-- Sales Card -->
+            <!-- Products Card -->
             <div class="col-xxl-4 col-md-6">
-              <div class="card info-card sales-card">
-
-                
-
-                <div class="card-body">
-                  <h5 class="card-title">Total <span>| Products</span></h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-cart"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6><?php echo $total_products; ?></h6>
-                      
-
+              <a href="products.php" class="text-decoration-none">
+                <div class="card info-card sales-card h-100">
+                  <div class="card-body">
+                    <h5 class="card-title">Total <span>| Products</span></h5>
+                    <div class="d-flex align-items-center">
+                      <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-cart"></i>
+                      </div>
+                      <div class="ps-3">
+                        <h6><?php echo $total_products; ?></h6>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </a>
+            </div><!-- End Products Card -->
 
-              </div>
-            </div><!-- End Sales Card -->
-
-            <!-- Revenue Card -->
+            <!-- Orders Card -->
             <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
-
-               
-
-                <div class="card-body">
-                  <h5 class="card-title">Total <span>| Orders</span></h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i><img src="assets/img/ru.png"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6><?php echo $total_order; ?></h6>
-
+              <a href="orders.php" class="text-decoration-none">
+                <div class="card info-card revenue-card h-100">
+                  <div class="card-body">
+                    <h5 class="card-title">Total <span>| Orders</span></h5>
+                    <div class="d-flex align-items-center">
+                      <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                        <i><img src="assets/img/ru.png" alt="Orders"></i>
+                      </div>
+                      <div class="ps-3">
+                        <h6><?php echo $total_order; ?></h6>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </a>
+            </div><!-- End Orders Card -->
 
-              </div>
-            </div><!-- End Revenue Card -->
-
-            <!-- Customers Card -->
+            <!-- Enquiries Card -->
             <div class="col-xxl-4 col-xl-12">
-
-              <div class="card info-card customers-card">
-
-                
-
-                <div class="card-body">
-                  <h5 class="card-title">User  <span>| Enquiry</span></h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-people"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6><?php echo $total_enquiry; ?></h6>
-
+              <a href="user-queries.php" class="text-decoration-none">
+                <div class="card info-card customers-card h-100">
+                  <div class="card-body">
+                    <h5 class="card-title">User <span>| Enquiry</span></h5>
+                    <div class="d-flex align-items-center">
+                      <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-people"></i>
+                      </div>
+                      <div class="ps-3">
+                        <h6><?php echo $total_enquiry; ?></h6>
+                      </div>
                     </div>
                   </div>
-
                 </div>
-              </div>
-
-            </div><!-- End Customers Card -->
+              </a>
+            </div><!-- End Enquiries Card -->
 
            
         </div><!-- End Left side columns -->

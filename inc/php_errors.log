@@ -3023,3 +3023,69 @@ Stack trace:
 )
 
 [11-Jun-2025 06:49:52 Europe/Berlin] Order placed successfully. Order ID: 21
+[11-Jun-2025 09:24:09 Europe/Berlin] === New Request ===
+[11-Jun-2025 09:24:09 Europe/Berlin] Request Method: POST
+[11-Jun-2025 09:24:09 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryJ2TZx8rdtJzG6TkW
+[11-Jun-2025 09:24:09 Europe/Berlin] Raw input: 
+[11-Jun-2025 09:24:09 Europe/Berlin] POST data: Array
+(
+    [cart_items] => [{"id":"15","name":"Cupboard Lock (Wave)","price":0,"qty":2,"size":"23-25mm","finish":"ch","image":"http://localhost:8000/uploads/product/1748890632_Cupbaord%20Lock%20(Wave).jpg"}]
+    [total_amount] => 0.00
+    [customer_name] => deepanshu
+    [customer_email] => deepanshu@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => delhi
+    [additional_notes] => 
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Successfully decoded cart_items JSON: Array
+(
+    [0] => Array
+        (
+            [id] => 15
+            [name] => Cupboard Lock (Wave)
+            [price] => 0
+            [qty] => 2
+            [size] => 23-25mm
+            [finish] => ch
+            [image] => http://localhost:8000/uploads/product/1748890632_Cupbaord%20Lock%20(Wave).jpg
+        )
+
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [id] => 15
+            [name] => Cupboard Lock (Wave)
+            [price] => 0
+            [qty] => 2
+            [size] => 23-25mm
+            [finish] => ch
+            [image] => http://localhost:8000/uploads/product/1748890632_Cupbaord%20Lock%20(Wave).jpg
+        )
+
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 15
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 15
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 15
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 15
+)
+
+[11-Jun-2025 09:24:09 Europe/Berlin] Order placed successfully. Order ID: 27
