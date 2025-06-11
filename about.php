@@ -135,7 +135,7 @@
         <img src="assets/img/mission.png" class="d-block w-100 h-100 object-fit-cover" alt="...">
       </div>
       <div class="carousel-item">
-        <img src="assets/img/mission.png" class="d-block w-100 h-100 object-fit-cover" alt="...">
+        <img src="assets/img/cont.png" class="d-block w-100 h-100 object-fit-cover" alt="...">
       </div>
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">

@@ -938,6 +938,24 @@ function updateCheckoutModal(selectedItems) {
         })
         .then(data => {
             if (data.status === 'success') {
+                // Remove checked-out items from cart
+                try {
+                    // Get the current cart
+                    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    // Get the IDs of the checked-out items
+                    const checkedOutIds = items.map(item => item.id);
+                    // Filter out the checked-out items
+                    const updatedCart = currentCart.filter(item => !checkedOutIds.includes(item.id));
+                    // Save the updated cart back to localStorage
+                    localStorage.setItem('cart', JSON.stringify(updatedCart));
+                    // Update the cart count in the header if it exists
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = updatedCart.length;
+                    }
+                } catch (error) {
+                    console.error('Error updating cart after checkout:', error);
+                }
                 // Redirect to thank you page on success
                 window.location.href = 'thank-you.php?order_id=' + encodeURIComponent(data.order_id || '');
             } else {

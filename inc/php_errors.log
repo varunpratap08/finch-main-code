@@ -2891,3 +2891,135 @@ Stack trace:
 )
 
 [11-Jun-2025 04:54:39 Europe/Berlin] Order placed successfully. Order ID: 19
+[11-Jun-2025 06:46:55 Europe/Berlin] === New Request ===
+[11-Jun-2025 06:46:55 Europe/Berlin] Request Method: POST
+[11-Jun-2025 06:46:55 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryyI1YzKm1wGpes5WJ
+[11-Jun-2025 06:46:55 Europe/Berlin] Raw input: 
+[11-Jun-2025 06:46:55 Europe/Berlin] POST data: Array
+(
+    [cart_items] => [{"id":"22","name":"Inter Lock (Ultra) (Eco)","price":0,"qty":3,"size":"17m-20mm","finish":"rg","image":"http://localhost:8000/uploads/main_68480e2dec921.jpg"}]
+    [total_amount] => 0.00
+    [customer_name] => sumit
+    [customer_email] => sumit@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => delhi
+    [additional_notes] => 
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Successfully decoded cart_items JSON: Array
+(
+    [0] => Array
+        (
+            [id] => 22
+            [name] => Inter Lock (Ultra) (Eco)
+            [price] => 0
+            [qty] => 3
+            [size] => 17m-20mm
+            [finish] => rg
+            [image] => http://localhost:8000/uploads/main_68480e2dec921.jpg
+        )
+
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [id] => 22
+            [name] => Inter Lock (Ultra) (Eco)
+            [price] => 0
+            [qty] => 3
+            [size] => 17m-20mm
+            [finish] => rg
+            [image] => http://localhost:8000/uploads/main_68480e2dec921.jpg
+        )
+
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:46:55 Europe/Berlin] Order placed successfully. Order ID: 20
+[11-Jun-2025 06:49:52 Europe/Berlin] === New Request ===
+[11-Jun-2025 06:49:52 Europe/Berlin] Request Method: POST
+[11-Jun-2025 06:49:52 Europe/Berlin] Content Type: multipart/form-data; boundary=----WebKitFormBoundaryvBvjE4GnzlvFk2BB
+[11-Jun-2025 06:49:52 Europe/Berlin] Raw input: 
+[11-Jun-2025 06:49:52 Europe/Berlin] POST data: Array
+(
+    [cart_items] => [{"id":"22","name":"Inter Lock (Ultra) (Eco)","price":0,"qty":3,"size":"17m-20mm","finish":"gd","image":"http://localhost:8000/uploads/main_68480e2dec921.jpg"}]
+    [total_amount] => 0.00
+    [customer_name] => shashwat
+    [customer_email] => shashwat@gmail.com
+    [customer_phone] => 1234567890
+    [shipping_address] => gorakhpur
+    [additional_notes] => 
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Successfully decoded cart_items JSON: Array
+(
+    [0] => Array
+        (
+            [id] => 22
+            [name] => Inter Lock (Ultra) (Eco)
+            [price] => 0
+            [qty] => 3
+            [size] => 17m-20mm
+            [finish] => gd
+            [image] => http://localhost:8000/uploads/main_68480e2dec921.jpg
+        )
+
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [id] => 22
+            [name] => Inter Lock (Ultra) (Eco)
+            [price] => 0
+            [qty] => 3
+            [size] => 17m-20mm
+            [finish] => gd
+            [image] => http://localhost:8000/uploads/main_68480e2dec921.jpg
+        )
+
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Cart product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Valid product IDs: Array
+(
+    [0] => 22
+)
+
+[11-Jun-2025 06:49:52 Europe/Berlin] Order placed successfully. Order ID: 21
