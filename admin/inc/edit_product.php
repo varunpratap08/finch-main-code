@@ -7,6 +7,8 @@
     <title>Edit Product - Admin Panel</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
@@ -395,10 +397,312 @@
     }
 
     </style>
+    <style>
+        :root {
+            /* Modern color palette */
+            --primary: #3a7bd5;        /* Soft blue */
+            --primary-hover: #2c6cb0;  /* Darker blue on hover */
+            --primary-light: #e8f0fe;  /* Very light blue for backgrounds */
+            --secondary: #6c757d;      /* Neutral gray */
+            --light: #f8f9fa;         /* Light gray */
+            --lighter: #f1f5f9;       /* Slightly darker light gray */
+            --dark: #1e293b;           /* Dark blue-gray for text */
+            --gray: #64748b;           /* Medium gray */
+            --gray-light: #cbd5e1;     /* Light gray */
+            --gray-lighter: #f1f5f9;   /* Very light gray */
+            --success: #10b981;        /* Green */
+            --danger: #ef4444;         /* Red */
+            --warning: #f59e0b;        /* Amber */
+            --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --transition: all 0.2s ease-in-out;
+            --header-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: none;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: var(--header-gradient);
+            color: var(--dark);
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--gray-lighter);
+            border-radius: 12px 12px 0 0 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header h5, 
+        .card-header h6 {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--dark);
+            letter-spacing: -0.025em;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9375rem;
+        }
+
+        .form-control, .form-select, .form-check-input {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            height: auto;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn i {
+            font-size: 1.1em;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            letter-spacing: 0.025em;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-outline-secondary {
+            color: var(--gray);
+            border-color: var(--gray-light);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--gray-lighter);
+            color: var(--dark);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background-color: var(--lighter);
+            border-bottom: 2px solid var(--gray-lighter);
+            padding: 0.875rem 1.25rem;
+        }
+
+        .table td, .table th {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            border-color: #e5e7eb;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .img-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            padding: 0.5rem;
+        }
+
+        .img-upload-container {
+            position: relative;
+            margin-bottom: 1rem;
+            border: 2px dashed var(--gray-light);
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background-color: var(--lighter);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .img-upload-container:hover {
+            border-color: var(--primary);
+            background-color: #f3f4f6;
+        }
+
+        .img-upload-container i {
+            font-size: 2.5rem;
+            color: #9ca3af;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .img-upload-container p {
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+            font-size: 0.9375rem;
+        }
+
+        .img-upload-container small {
+            color: #9ca3af;
+            font-size: 0.8125rem;
+        }
+
+        .finish-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: var(--transition);
+            height: 100%;
+        }
+
+        .finish-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .finish-card .card-img-top {
+            height: 120px;
+            object-fit: cover;
+            background-color: #f9fafb;
+        }
+
+        .finish-card .card-body {
+            padding: 1.25rem;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem 1.25rem;
+            }
+            
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-header {
+                padding: 1rem 1.25rem;
+            }
+            
+            .card-title {
+                font-size: 1.25rem;
+            }
+            
+            .form-control, .form-select, .form-check-input {
+                padding: 0.65rem 0.875rem;
+                font-size: 0.9375rem;
+            }
+            
+            .btn {
+                padding: 0.65rem 1.25rem;
+                font-size: 0.9375rem;
+            }
+        }
+
+        /* Hide footer */
+        footer {
+            display: none !important;
+        }
+    </style>
 </head>
 <body class="bg-light">
-    <div class="container py-4">
-        <div class="row justify-content-center">
+    <div class="container">
+        <div class="row">
             <div class="col-12">
     <?php
 require '../../inc/db.php';
@@ -545,57 +849,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
 
-          <!-- Finishes Section -->
+          <!-- Finish Images -->
           <div class="col-12">
             <div class="card mb-4">
               <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Available Finishes</h6>
-                <p class="text-muted small mb-0">Select the finishes available for this product</p>
+                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Finish Images</h6>
+                <p class="text-muted small mb-0">Upload images for each finish type (Max 5MB per image)</p>
               </div>
               <div class="card-body">
-                <div class="row g-3">
-                  <?php
-                  // Fetch all finishes
-                  $finishes = $pdo->query("SELECT * FROM finishes ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
-                  $selectedFinishes = !empty($product['finish_ids']) ? explode(',', $product['finish_ids']) : [];
+                <div class="row g-4">
+                  <?php 
+                  $finish_images = [
+                      'sn_image' => ['label' => 'Satin Nickel (SN)', 'current' => $product['sn_image'] ?? ''],
+                      'bk_image' => ['label' => 'Black (BK)', 'current' => $product['bk_image'] ?? ''],
+                      'an_image' => ['label' => 'Antique Nickel (AN)', 'current' => $product['an_image'] ?? ''],
+                      'gd_image' => ['label' => 'Gold (GD)', 'current' => $product['gd_image'] ?? ''],
+                      'rg_image' => ['label' => 'Rose Gold (RG)', 'current' => $product['rg_image'] ?? '']
+                  ];
                   
-                  if (!empty($finishes)) {
-                      foreach ($finishes as $finish) {
-                          $finishId = $finish['id'];
-                          $finishName = htmlspecialchars($finish['name']);
-                          $finishImage = !empty($finish['image']) ? '../../' . $finish['image'] : 'assets/img/no-image.png';
-                          $isChecked = in_array($finishId, $selectedFinishes) ? 'checked' : '';
-                          ?>
-                          <div class="col-xl-3 col-lg-4 col-md-6">
-                            <div class="finish-card card h-100">
-                              <div class="card-img-top d-flex align-items-center justify-content-center p-3">
-                                <img src="<?= $finishImage ?>" alt="<?= $finishName ?>" class="img-fluid" style="max-height: 100px; width: auto; max-width: 100%;">
-                              </div>
-                              <div class="card-body text-center p-3">
-                                <div class="form-check d-flex align-items-center justify-content-center">
-                                  <input class="form-check-input me-2" type="checkbox" name="finishes[]" 
-                                         value="<?= $finishId ?>" id="finish_<?= $finishId ?>" <?= $isChecked ?>>
-                                  <label class="form-check-label fw-medium" for="finish_<?= $finishId ?>">
-                                    <?= $finishName ?>
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <?php
-                      }
-                  } else {
-                      echo '<div class="col-12 text-center py-4">
-                              <div class="text-muted">
-                                <i class="bi bi-palette display-6 d-block mb-2"></i>
-                                <p class="mb-0">No finishes found. Please add finishes first.</p>
-                                <a href="../finishes.php" class="btn btn-sm btn-outline-primary mt-3">
-                                  <i class="bi bi-plus-lg me-1"></i> Add Finishes
-                                </a>
-                              </div>
-                            </div>';
-                  }
+                  foreach ($finish_images as $field => $finish): 
+                      $preview_id = $field . 'Preview';
                   ?>
+                  <div class="col-md-6 col-lg-4">
+                    <div class="border rounded-2 p-3 h-100">
+                      <label class="form-label small text-muted mb-1"><?= $finish['label'] ?></label>
+                      <div class="d-flex align-items-center gap-3">
+                        <?php if (!empty($finish['current'])): ?>
+                          <img src="../../<?= ltrim($finish['current'], '/') ?>" class="img-fluid rounded-2" style="width: 60px; height: 60px; object-fit: cover;" id="<?= $preview_id ?>">
+                        <?php else: ?>
+                          <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-image text-muted"></i>
+                          </div>
+                        <?php endif; ?>
+                        <div class="flex-grow-1">
+                          <input type="file" name="<?= $field ?>" id="<?= $field ?>" accept="image/*" class="d-none" onchange="previewImage(this, '<?= $preview_id ?>')">
+                          <label for="<?= $field ?>" class="btn btn-sm btn-outline-secondary w-100">
+                            <i class="bi bi-upload me-1"></i> Upload
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
             </div>
@@ -807,53 +1102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-                  <!-- Finish Images -->
-          <div class="col-12">
-            <div class="card mb-4">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Finish Images</h6>
-                <p class="text-muted small mb-0">Upload images for each finish type (Max 5MB per image)</p>
-              </div>
-              <div class="card-body">
-                <div class="row g-4">
-                  <?php 
-                  $finish_images = [
-                      'sn_image' => ['label' => 'Satin Nickel (SN)', 'current' => $product['sn_image'] ?? ''],
-                      'bk_image' => ['label' => 'Black (BK)', 'current' => $product['bk_image'] ?? ''],
-                      'an_image' => ['label' => 'Antique Nickel (AN)', 'current' => $product['an_image'] ?? ''],
-                      'gd_image' => ['label' => 'Gold (GD)', 'current' => $product['gd_image'] ?? ''],
-                      'rg_image' => ['label' => 'Rose Gold (RG)', 'current' => $product['rg_image'] ?? '']
-                  ];
-                  
-                  foreach ($finish_images as $field => $finish): 
-                      $preview_id = $field . 'Preview';
-                  ?>
-                  <div class="col-md-6 col-lg-4">
-                    <div class="border rounded-2 p-3 h-100">
-                      <label class="form-label small text-muted mb-1"><?= $finish['label'] ?></label>
-                      <div class="d-flex align-items-center gap-3">
-                        <?php if (!empty($finish['current'])): ?>
-                          <img src="../../<?= ltrim($finish['current'], '/') ?>" class="img-fluid rounded-2" style="width: 60px; height: 60px; object-fit: cover;" id="<?= $preview_id ?>">
-                        <?php else: ?>
-                          <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-image text-muted"></i>
-                          </div>
-                        <?php endif; ?>
-                        <div class="flex-grow-1">
-                          <input type="file" name="<?= $field ?>" id="<?= $field ?>" accept="image/*" class="d-none" onchange="previewImage(this, '<?= $preview_id ?>')">
-                          <label for="<?= $field ?>" class="btn btn-sm btn-outline-secondary w-100">
-                            <i class="bi bi-upload me-1"></i> Upload
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <?php endforeach; ?>
                 </div>
               </div>
             </div>
