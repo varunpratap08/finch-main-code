@@ -390,9 +390,9 @@ try {
                                                 <!-- Main product image -->
                                                 <div class="product-image-container me-3" style="width: 120px; height: 120px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
                                                     <?php if (!empty($image_path)): ?>
-                                                        <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                                      <!-- <img src="<?php echo htmlspecialchars($image_path); ?>" -->
                                                              alt="<?php echo htmlspecialchars($first_item['name'] ?? 'Product Image'); ?>" 
-                                                             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                             style="max-width: 100%; max-height: 100%; object-fit: contain;"> -->
                                                     <?php else: ?>
                                                         <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
                                                     <?php endif; ?>
@@ -461,7 +461,7 @@ try {
                                         <div class="card bg-light">
                                             <div class="card-body">
                                                 <h6 class="card-title">Customer Details</h6>
-                                                <h6 class="card-title">Customer Details</h6>
+                                               <!-- <h6 class="card-title">Customer Details</h6> -->
                                                 <p class="mb-1">
                                                     <strong>Name:</strong> <?php echo htmlspecialchars($order['customer_name']); ?>
                                                 </p>

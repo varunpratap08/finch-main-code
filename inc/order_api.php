@@ -116,10 +116,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Get the finish image from the form data
+        $finish_image = '';
+        if (!empty($_POST['finish_image'])) {
+            // Sanitize the finish image path
+            $finish_image = filter_var($_POST['finish_image'], FILTER_SANITIZE_STRING);
+            // Ensure the path is relative and doesn't contain directory traversal
+            $finish_image = ltrim($finish_image, '/.\\');
+            $finish_image = str_replace(['..', '//'], '', $finish_image);
+        }
+
         // Prepare order data with finish image
         $order_data = [
             'items' => $order_items,
-            'finish_image' => $_POST['finish_image'] ?? ''
+            'finish_image' => $finish_image
         ];
         
         // Encode order details in JSON format
@@ -140,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':total_price' => $total_price
         ]);
 
-        header("Location: ../success.php");
+        header("Location: ../thank-you.php");
         exit();
 
     } catch (PDOException $e) {

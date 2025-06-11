@@ -660,7 +660,7 @@ try {
             <div class="modal-body">
                 <form id="buyNowForm" action="inc/order_api.php" method="POST">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                    <input type="hidden" name="finish_image" id="buyNowFinishImage">
+                    <input type="hidden" name="finish_image" id="buyNowFinishImage" value="">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
                         <input type="text" class="form-control" name="customer_name" required>
@@ -1030,6 +1030,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Get the finish image from the selected finish
+            const finishImage = selectedFinish.getAttribute('data-image');
+            if (!finishImage) {
+                alert('Please select a valid finish with an image');
+                return;
+            }
+            
             // Prefill modal form with main selection
             const form = document.getElementById('buyNowForm');
             const modalSizeSelect = form.querySelector('select[name="sizes[]"]');
@@ -1037,14 +1044,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const modalQuantityInput = form.querySelector('input[name="quantities[]"]');
             const buyNowFinishImage = document.getElementById('buyNowFinishImage');
             
-            // Set the finish image from the selected finish
-            const finishImage = selectedFinish.getAttribute('data-image');
-            if (finishImage) {
-                // Store the relative path (remove any leading slashes or dots)
-                const relativePath = finishImage.replace(/^[.\/]+/, '');
-                buyNowFinishImage.value = relativePath;
-                console.log('Setting finish image:', relativePath);
-            }
+            // Clear any existing finish image and set the new one
+            buyNowFinishImage.value = '';
+            
+            // Store the relative path (remove any leading slashes or dots)
+            const relativePath = finishImage.replace(/^[.\/]+/, '');
+            buyNowFinishImage.value = relativePath;
+            console.log('Setting finish image:', relativePath);
 
             // Set the values from the main dropdowns if available
             if (mainSizeSelect && modalSizeSelect) {
