@@ -806,22 +806,64 @@ function updateCheckoutModal(selectedItems) {
             return false;
         }
         
-        cartItemCards.forEach(function(card) {
+        console.log('Processing cart items. Total items:', cartItemCards.length);
+        cartItemCards.forEach(function(card, index) {
             try {
+                console.log(`\n--- Processing item ${index + 1} ---`);
                 const id = card.querySelector('input.product-id')?.value?.trim() || '';
+                console.log('Found ID:', id);
                 const name = card.querySelector('.product-name')?.textContent?.trim() || '';
                 // Ensure price and qty are numbers
                 const priceRaw = card.querySelector('input.product-price-input')?.value;
                 const qtyRaw = card.querySelector('input.product-quantity-input')?.value;
                 const price = Number(priceRaw);
                 const qty = Number(qtyRaw);
-                const size = card.querySelector('select.item-size')?.value?.trim() || '';
-                const finish = card.querySelector('select.item-finish')?.value?.trim() || '';
+                
+                // Get size and finish values with better fallbacks
+                const sizeSelect = card.querySelector('select.item-size');
+                const finishSelect = card.querySelector('select.item-finish');
+                const size = sizeSelect ? (sizeSelect.value || (sizeSelect.options.length > 0 ? sizeSelect.options[0].value : '')) : '';
+                const finish = finishSelect ? (finishSelect.value || (finishSelect.options.length > 0 ? finishSelect.options[0].value : '')) : '';
+                
                 const image = card.querySelector('img')?.src || '';
-                // Debug log
-                console.log('Collected item:', { id, name, price, priceType: typeof price, qty, qtyType: typeof qty, size, finish });
+                
+                // Debug log with more details
+                const itemData = { 
+                    id, 
+                    name, 
+                    price, 
+                    priceRaw,
+                    priceType: typeof price, 
+                    qty, 
+                    qtyRaw,
+                    qtyType: typeof qty, 
+                    size, 
+                    finish,
+                    hasSizeSelect: !!sizeSelect,
+                    hasFinishSelect: !!finishSelect,
+                    sizeSelectValue: sizeSelect?.value,
+                    finishSelectValue: finishSelect?.value,
+                    cardHTML: card.outerHTML
+                };
+                console.log('Collected item data:', itemData);
+                
+                // Log validation results
+                const validation = {
+                    hasId: !!id,
+                    hasName: !!name,
+                    validPrice: !isNaN(price) && price >= 0,  // Changed to allow 0 price
+                    validQty: !isNaN(qty) && qty > 0,
+                    hasSize: !!size,
+                    hasFinish: !!finish
+                };
+                console.log('Validation results:', validation);
+                
                 // Only include items with all required fields and valid values
-                if (id && name && !isNaN(price) && price > 0 && !isNaN(qty) && qty > 0 && size && finish) {
+                // Changed to allow price to be 0 and removed size/finish from required fields
+                const isValid = id && name && !isNaN(price) && price >= 0 && !isNaN(qty) && qty > 0;
+                console.log(`Item ${isValid ? 'is VALID' : 'is INVALID'}`);
+                
+                if (isValid) {
                     items.push({
                         id: id,
                         name: name,
@@ -843,14 +885,13 @@ function updateCheckoutModal(selectedItems) {
         });
         console.log('Final items array before validation:', items);
         if (items.length === 0) {
-            alert('No valid products to order. Please check your cart and try again.');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
-            return false;
-        }
-        
-        if (hasInvalid) {
-            alert('Some products have missing or invalid details (size, finish, quantity, or price). Please review your order.');
+            // More detailed error message
+            const errorMsg = hasInvalid ? 
+                'Some products have missing or invalid details. Please check that all items have a quantity, price, and any required options selected.' :
+                'No valid products found in your cart. Please add items before checking out.';
+                
+            console.error('Checkout failed:', { items, hasInvalid, cartItemCards });
+            alert(errorMsg);
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
             return false;
