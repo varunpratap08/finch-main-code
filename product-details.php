@@ -1123,56 +1123,53 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             const finishName = finishNames[finishCode] || finishCode;
             
-            // Add to cart
+            // Create a unique ID for this product variant (combination of product ID, size, and finish)
+            const variantId = `${<?php echo json_encode($product['id']); ?>}_${sizeSelect.value}_${finishCode}`;
+            
+            // Add to cart - format the product object to match what cartFunctions.addToCart expects
             const product = {
-                id: <?php echo json_encode($product['id']); ?>,
-                name: <?php echo json_encode($product['product_name']); ?>,
+                id: variantId, // Use the unique variant ID
+                name: <?php echo json_encode($product['product_name']); ?> + ' - ' + sizeSelect.value + ' - ' + finishName,
                 price: price,
+                qty: 1,
                 size: sizeSelect.value,
                 finish: finishCode,
-                finishName: finishName,
-                image: <?php echo json_encode($product['product_image']); ?>,
-                qty: 1,
-                sizes: availableSizes // <-- Add this line
+                image: <?php echo json_encode($product['product_image']); ?>
             };
             
-            // Get current cart
-            const cart = getCart();
-            
-            // Check if product already exists in cart
-            const existingProductIndex = cart.findIndex(item => 
-                item.id === product.id && 
-                item.size === product.size && 
-                item.finish === product.finish
-            );
-            
-            if (existingProductIndex > -1) {
-                // If product exists, increase quantity
-                cart[existingProductIndex].qty += 1;
-            } else {
-                // If product doesn't exist, add it to cart
-                cart.push(product);
+            try {
+                // Check if this exact variant already exists in cart
+                const cart = window.cartFunctions.getCart();
+                const existingItem = cart.find(item => item.id === variantId);
+                
+                if (existingItem) {
+                    // If variant exists, update its quantity
+                    window.cartFunctions.updateQuantity(variantId, existingItem.qty + 1);
+                } else {
+                    // If variant doesn't exist, add it to cart
+                    window.cartFunctions.addToCart(product);
+                }
+                
+                // Update cart UI
+                window.cartFunctions.updateCartUI();
+                
+                // Show success message
+                const originalText = addToCartBtn.textContent;
+                addToCartBtn.innerHTML = '<i class="bi bi-check-circle"></i> Added!';
+                addToCartBtn.disabled = true;
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    addToCartBtn.innerHTML = originalText;
+                    addToCartBtn.disabled = false;
+                }, 2000);
+                
+                // Show toast notification
+                showToast(`${product.name} added to cart!`);
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showToast('Error adding item to cart. Please try again.');
             }
-            
-            // Save updated cart to localStorage
-            setCart(cart);
-            
-            // Update cart UI
-            updateCartUI();
-            
-            // Show success message
-            const originalText = addToCartBtn.textContent;
-            addToCartBtn.innerHTML = '<i class="bi bi-check-circle"></i> Added!';
-            addToCartBtn.disabled = true;
-            
-            // Reset button after 2 seconds
-            setTimeout(() => {
-                addToCartBtn.innerHTML = originalText;
-                addToCartBtn.disabled = false;
-            }, 2000);
-            
-            // Show toast notification
-            showToast(`${product.name} added to cart!`);
         });
     }
     

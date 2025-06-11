@@ -85,18 +85,20 @@ window.cartFunctions = {
     },
     updateCartUI: function() {
         const cart = this.getCart();
-        let count = 0, total = 0;
+        let total = 0;
         
-        // Calculate total items and price
+        // Count unique products and calculate total price
+        const uniqueProducts = new Set();
         cart.forEach(item => {
-            count += parseInt(item.qty) || 0;
+            uniqueProducts.add(item.id || item.name); // Use product ID or name as unique identifier
             total += (parseFloat(item.price) || 0) * (parseInt(item.qty) || 0);
         });
         
         // Update all cart count and total elements
         document.querySelectorAll('.cart-count').forEach(el => {
-            el.textContent = count;
-            el.style.display = count > 0 ? 'inline-flex' : 'none';
+            const uniqueCount = uniqueProducts.size;
+            el.textContent = uniqueCount;
+            el.style.display = uniqueCount > 0 ? 'inline-flex' : 'none';
         });
         
         document.querySelectorAll('.cart-total').forEach(el => {
@@ -104,7 +106,12 @@ window.cartFunctions = {
         });
         
         // Dispatch event for other scripts to listen to
-        document.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count, total } }));
+        document.dispatchEvent(new CustomEvent('cartUpdated', { 
+            detail: { 
+                count: uniqueProducts.size, 
+                total: total 
+            } 
+        }));
     },
     addToCart: function(product) {
         const cart = this.getCart();

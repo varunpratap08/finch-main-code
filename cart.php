@@ -642,10 +642,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const pureCounterScript = document.querySelector('script[src*="purecounter"]');
     if (pureCounterScript) pureCounterScript.remove();
     
-    // Initialize cart if it exists
-    if (window.cartFunctions && typeof window.cartFunctions.init === 'function') {
+    // Ensure cart functions are available
+    if (!window.cartFunctions) {
+        console.error('cartFunctions not found');
+        return;
+    }
+
+    // Function to force update cart count in header
+    function updateCartCount() {
+        try {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const uniqueProducts = new Set();
+            let total = 0;
+            
+            // Calculate unique products and total
+            cart.forEach(item => {
+                uniqueProducts.add(item.id);
+                total += (parseFloat(item.price) || 0) * (parseInt(item.qty) || 0);
+            });
+            
+            // Update all cart count elements
+            document.querySelectorAll('.cart-count').forEach(el => {
+                el.textContent = uniqueProducts.size;
+                el.style.display = uniqueProducts.size > 0 ? 'inline-flex' : 'none';
+            });
+            
+            // Update cart total
+            document.querySelectorAll('.cart-total').forEach(el => {
+                el.textContent = '₹' + total.toFixed(2);
+            });
+            
+            console.log('Cart count updated:', uniqueProducts.size, 'items');
+        } catch (error) {
+            console.error('Error updating cart count:', error);
+        }
+    }
+    
+    // Initialize cart
+    if (typeof window.cartFunctions.init === 'function') {
         window.cartFunctions.init();
     }
+    
+    // Update cart count immediately
+    updateCartCount();
+    
+    // Also update when the page becomes visible (in case of back/forward navigation)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            updateCartCount();
+        }
+    });
+    
+    // Listen for cart updates from other components
+    document.addEventListener('cartUpdated', updateCartCount);
+    
+    // Force update after a short delay to ensure everything is loaded
+    setTimeout(updateCartCount, 500);
 });
 </script>
 

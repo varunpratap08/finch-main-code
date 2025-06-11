@@ -96,7 +96,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 </head>
 <body>
     <div class="container">
-        <h2>Edit Subcategory</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit Subcategory</h2>
+            <div class="btn-group">
+                <a href="../sub-category.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Subcategories
+                </a>
+                <a href="../dashboard.php" class="btn btn-primary">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </div>
+        </div>
 
         <?php if (isset($error)) : ?>
             <p class="error"><?php echo htmlspecialchars($error); ?></p>
